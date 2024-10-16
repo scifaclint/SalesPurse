@@ -1,0 +1,24 @@
+{
+  "name": "salespulse",
+  "version": "1.0.0",
+  "description": "Simple sales manager with react and electron ",
+  "main": "main.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electronmon ."
+  },
+  "keywords": [
+    "react",
+    "js"
+  ],
+  "author": "Acheampong Clinton Yaw",
+  "license": "MIT",
+  "dependencies": {
+    "electron": "^32.2.0",
+    "electron-is-dev": "^3.0.1"
+  },
+  "devDependencies": {
+    "electronmon": "^2.0.3"
+  }
+}

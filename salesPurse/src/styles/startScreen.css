@@ -1,0 +1,96 @@
+/* SalesPulseLogin.css */
+
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: "100%";
+  width: "100%";
+}
+
+.card {
+  width: 100%;
+  max-width: 400px; /* Adjusted max width */
+  overflow: hidden;
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-header {
+  width: 250px;
+  height: 250px;
+}
+.image {
+  width: "100%";
+  height: "100%";
+  object-fit: cover;
+}
+
+.imageLogo{
+    object-fit: contain;
+}
+
+.card-content {
+  padding: 16px; /* Padding for content */
+}
+
+.toggle-container {
+  display: flex;
+  justify-content: center;
+}
+
+.toggle {
+  width: 160px; /* Adjusted width */
+  padding: 8px; /* Padding */
+  border-radius: 4px; /* Rounded corners */
+  color: white;
+  cursor: pointer;
+  transition: background 0.3s ease; /* Smooth transition */
+  margin: 2px;
+}
+
+.toggle-admin {
+  background: #a855f7; /* Purple-600 */
+}
+
+.toggle-worker {
+  background: #3b82f6; /* Blue-500 */
+}
+
+.input {
+  border: 1px solid #d1d5db; /* Border gray-300 */
+  padding: 12px; /* Padding for input */
+  border-radius: 4px; /* Rounded corners */
+  width: 100%; /* Full width */
+  outline: none; /* Remove outline */
+  transition: border-color 0.3s ease; /* Smooth transition */
+  margin: 2px;
+}
+
+.input:focus {
+  border-color: #3b82f6; /* Focus border blue-500 */
+}
+
+.button {
+  width: 100%; /* Full width */
+  background: linear-gradient(
+    to right,
+    #3b82f6,
+    #a855f7
+  ); /* Blue-500 to Purple-600 */
+  color: white; /* White text */
+  padding: 12px; /* Padding */
+  border: none; /* Remove border */
+  border-radius: 4px; /* Rounded corners */
+  cursor: pointer; /* Pointer cursor */
+  transition: background 0.3s ease; /* Smooth transition */
+  margin: 4px;
+}
+
+.button:hover {
+  background: linear-gradient(to right, #2563eb, #9333ea); /* Darker on hover */
+}

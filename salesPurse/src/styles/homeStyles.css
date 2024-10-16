@@ -1,0 +1,158 @@
+.admin-dashboard {
+  display: flex;
+  height: 90vh;
+  font-family: 'Roboto', Arial, sans-serif;
+}
+
+.sidebar {
+  width: 250px;
+  background-color: #1a237e;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+.sidebar-header {
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.company-logo {
+  max-width: 120px;
+  height: auto;
+}
+
+.admin-profile {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.admin-name {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  padding-top: 20px;
+}
+
+.sidebar-button {
+  padding: 15px 20px;
+  border: none;
+  background-color: transparent;
+  color: #ffffff;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.3s;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+}
+.icon{
+  margin-right: 5px;
+}
+.sidebar-button:hover {
+  background-color: #283593;
+}
+
+.sidebar-button.active {
+  background-color: #3f51b5;
+  font-weight: bold;
+}
+
+.sign-out {
+  margin-top: auto;
+  background-color: #c62828;
+}
+
+.sign-out:hover {
+  background-color: #b71c1c;
+}
+
+.content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #f5f5f5;
+  overflow-y: auto;
+}
+
+.content-header {
+  background-color: #ffffff;
+  padding: 20px 30px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.content-header h1 {
+  margin: 0;
+  color: #1a237e;
+  font-size: 24px;
+}
+
+.content-body {
+  padding: 30px;
+  flex-grow: 1;
+}
+
+.mobile-menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .admin-dashboard {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: -100%;
+    height: 100vh;
+    z-index: 1000;
+  }
+
+  .sidebar.mobile-open {
+    left: 0;
+  }
+
+  .mobile-menu-toggle {
+    display: block;
+  }
+
+  .content {
+    margin-top: 60px;
+  }
+
+  .content-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
+  }
+
+  .content-body {
+    padding-top: 80px;
+  }
+}
