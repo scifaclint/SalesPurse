@@ -11,10 +11,10 @@ function CreateMainWindow() {
   const mainWindow = new BrowserWindow({
     title: "Electron",
     width: 1000,
-    height: 600,
+    height: 1000,
     webPreferences: {
-      nodeIntegration: true, 
-      contextIsolation: false, 
+      nodeIntegration: true,
+      contextIsolation: false,
     },
   });
 

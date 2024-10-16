@@ -6,9 +6,11 @@ import { MdDashboard, MdInventory } from "react-icons/md";
 import { FcSalesPerformance } from "react-icons/fc";
 import { ImProfile } from "react-icons/im";
 import { TbReport } from "react-icons/tb";
-// screens 
+// screens
 
 import Dashboard from "../components/DashBoard";
+import InventoryManagement from "../components/Inventory";
+import UserAccountManagement from "../components/Profiles";
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -16,11 +18,23 @@ const AdminDashboard = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard":
-        return <div><Dashboard/></div>;
+        return (
+          <div>
+            <Dashboard />
+          </div>
+        );
       case "inventory":
-        return <div>Inventory Content</div>;
+        return (
+          <div>
+            <InventoryManagement />
+          </div>
+        );
       case "profiles":
-        return <div>Profiles Content</div>;
+        return (
+          <div>
+            <UserAccountManagement />
+          </div>
+        );
       case "sales":
         return <div>Sales Content</div>;
       case "report":
