@@ -11,6 +11,8 @@ import { TbReport } from "react-icons/tb";
 import Dashboard from "../components/DashBoard";
 import InventoryManagement from "../components/Inventory";
 import UserAccountManagement from "../components/Profiles";
+import SalesDashboard from "../components/Sales";
+import Reports from "../components/Reports";
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -36,9 +38,17 @@ const AdminDashboard = () => {
           </div>
         );
       case "sales":
-        return <div>Sales Content</div>;
+        return (
+          <div>
+            <SalesDashboard />
+          </div>
+        );
       case "report":
-        return <div>Reports</div>;
+        return (
+          <div>
+            <Reports />
+          </div>
+        );
       default:
         return <div>Dashboard Content</div>;
     }

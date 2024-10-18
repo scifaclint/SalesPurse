@@ -107,6 +107,7 @@ const UserAccountManagement = () => {
       marginRight: "10px",
       border: "1px solid #ccc",
       borderRadius: "4px",
+      margin: "2px",
     },
     button: {
       padding: "10px 20px",
@@ -114,6 +115,15 @@ const UserAccountManagement = () => {
       borderRadius: "4px",
       cursor: "pointer",
       backgroundColor: "#007bff",
+      color: "white",
+      marginRight: "10px",
+    },
+    buttonCancel: {
+      padding: "10px 20px",
+      border: "none",
+      borderRadius: "4px",
+      cursor: "pointer",
+      backgroundColor: "red",
       color: "white",
       marginRight: "10px",
     },
@@ -246,6 +256,14 @@ const UserAccountManagement = () => {
               </select>
               <button style={styles.button} onClick={handleAddUser}>
                 Add User
+              </button>
+              <button
+                style={styles.buttonCancel}
+                onClick={() => {
+                  setIsAdding(false);
+                }}
+              >
+                Cancel
               </button>
             </>
           ) : selectedUser ? (
