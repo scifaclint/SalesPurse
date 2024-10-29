@@ -16,7 +16,8 @@
   "license": "MIT",
   "dependencies": {
     "electron": "^32.2.0",
-    "electron-is-dev": "^3.0.1"
+    "electron-is-dev": "^3.0.1",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
     "electronmon": "^2.0.3"

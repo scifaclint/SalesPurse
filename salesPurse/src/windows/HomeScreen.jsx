@@ -6,6 +6,9 @@ import { MdDashboard, MdInventory } from "react-icons/md";
 import { FcSalesPerformance } from "react-icons/fc";
 import { ImProfile } from "react-icons/im";
 import { TbReport } from "react-icons/tb";
+
+import { useSelector } from "react-redux";
+
 // screens
 
 import Dashboard from "../components/DashBoard";
@@ -16,6 +19,8 @@ import Reports from "../components/Reports";
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const dashboard = useSelector((state) => state.dashboard.userDetails);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -74,7 +79,7 @@ const AdminDashboard = () => {
         </div>
         <div className="admin-profile">
           <img src={profile} alt="Admin Avatar" className="admin-avatar" />
-          <span className="admin-name">Admin</span>
+          <span className="admin-name">{` (Admin)`} </span>
         </div>
         <nav className="sidebar-nav">
           <button

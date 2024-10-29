@@ -1,11 +1,15 @@
-import StartScreen from "./windows/StartScreen";
-import HomeScreen from "./windows/HomeScreen";
+import store from "./store";
+import AppNavigation from "./navigation/appNavigation";
+import { Provider } from "react-redux";
 import "./App.css";
 
 function App() {
+  
   return (
     <>
-      <HomeScreen />
+      <Provider store={store}>
+        <AppNavigation />
+      </Provider>
     </>
   );
 }
