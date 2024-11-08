@@ -1,224 +1,219 @@
-import { useState } from "react";
-import {
-  Package,
-  ShoppingCart,
-  ClipboardList,
-  BarChart,
-  LogOut,
-  Menu,
-} from "lucide-react";
 import { styles } from "../styles/worker";
-import NewSaleContent from "../components/NewSales";
+import { styled } from "../styles/mainWorkerSection";
+import NavigationTabWorker from "../navigation/NavigationTabsWorke";
+import { FiDollarSign, FiPackage, FiTruck, FiClock, FiX } from "react-icons/fi";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { useState } from "react";
 
-// Component for Dashboard Content
-const DashboardContent = () => (
-  <div>
-    <h1
-      style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "1.5rem" }}
-    >
-      Worker Dashboard
-    </h1>
+const DashboardContent = () => {
+  const salesData = [
+    { day: "Mon", sales: 2400 },
+    { day: "Tue", sales: 1398 },
+    { day: "Wed", sales: 3800 },
+    { day: "Thu", sales: 3908 },
+    { day: "Fri", sales: 4800 },
+    { day: "Sat", sales: 3800 },
+    { day: "Sun", sales: 4300 },
+  ];
 
-    <div style={styles.cardGrid}>
-      <div style={styles.card}>
-        <div style={styles.cardTitle}>{`Today's Sales`}</div>
-        <div style={styles.cardValue}>GHC 12,500</div>
-        <div style={{ color: "#6b7280", fontSize: "0.875rem" }}>
-          5 orders completed
+  const stats = [
+    {
+      title: "Today's Sales",
+      value: "GH₵ 4,890",
+      icon: <FiDollarSign />,
+      color: "#4ade80"
+    },
+    {
+      title: "Products Sold",
+      value: "45 items",
+      icon: <FiPackage />,
+      color: "#60a5fa"
+    },
+    {
+      title: "Pending Orders",
+      value: "5 orders",
+      icon: <FiTruck />,
+      color: "#f97316",
+      onClick: () => setShowPendingModal(true)
+    },
+    {
+      title: "Average Time",
+      value: "12 mins",
+      icon: <FiClock />,
+      color: "#a78bfa"
+    }
+  ];
+
+  const [showPendingModal, setShowPendingModal] = useState(false);
+
+  // Dummy pending sales data
+  const pendingSales = [
+    {
+      id: 1,
+      customerName: "John Doe",
+      products: [
+        { name: "Excavator Parts", quantity: 2, price: "1250" }
+      ],
+      total: "2,500",
+      date: "2024-02-20"
+    },
+    // ... more pending sales
+  ];
+
+  const PendingSalesModal = () => (
+    <div style={styles.modalOverlay}>
+      <div style={styles.modalContent}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
+          <h2 style={{ fontSize: "20px", fontWeight: "600" }}>Pending Sales</h2>
+          <button 
+            onClick={() => setShowPendingModal(false)}
+            style={{ 
+              background: "none", 
+              border: "none", 
+              fontSize: "24px", 
+              cursor: "pointer",
+              color: "#64748b"
+            }}
+          >
+            <FiX />
+          </button>
+        </div>
+
+        <div style={styles.pendingSalesList}>
+          {pendingSales.map((sale) => (
+            <div key={sale.id} style={styles.pendingSaleCard}>
+              <div style={styles.saleInfo}>
+                <h3 style={styles.saleTitle}>{sale.customerName}</h3>
+                <p style={styles.saleDetails}>
+                  {sale.products.map(p => `${p.name} x${p.quantity}`).join(", ")}
+                  <br />
+                  Total: GH₵ {sale.total}
+                </p>
+                <small style={{ color: "#94a3b8" }}>{sale.date}</small>
+              </div>
+              <div style={styles.saleActions}>
+                <button 
+                  style={{ 
+                    ...styles.actionButton, 
+                    backgroundColor: "#22c55e",
+                    color: "white"
+                  }}
+                  onClick={() => {/* Complete sale logic */}}
+                >
+                  Complete
+                </button>
+                <button 
+                  style={{ 
+                    ...styles.actionButton, 
+                    backgroundColor: "#ef4444",
+                    color: "white"
+                  }}
+                  onClick={() => {/* Delete sale logic */}}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
-
-     
-
-      
     </div>
-
-    <div style={styles.table}>
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead>
-          <tr>
-            <th style={styles.tableHeader}>Order ID</th>
-            <th style={styles.tableHeader}>Customer</th>
-            <th style={styles.tableHeader}>Items</th>
-            <th style={styles.tableHeader}>Amount</th>
-            <th style={styles.tableHeader}>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style={styles.tableCell}>#12345</td>
-            <td style={styles.tableCell}>John Construction Ltd</td>
-            <td style={styles.tableCell}>Hydraulic Pump x2</td>
-            <td style={styles.tableCell}>GHC 5,000</td>
-            <td style={styles.tableCell}>
-              <span
-                style={{
-                  backgroundColor: "#def7ec",
-                  color: "#03543f",
-                  padding: "0.25rem 0.75rem",
-                  borderRadius: "9999px",
-                  fontSize: "0.875rem",
-                }}
-              >
-                Completed
-              </span>
-            </td>
-          </tr>
-          <tr>
-            <td style={styles.tableCell}>#12344</td>
-            <td style={styles.tableCell}>BuildRight Ghana</td>
-            <td style={styles.tableCell}>Excavator Tracks x1</td>
-            <td style={styles.tableCell}>GHC 3,500</td>
-            <td style={styles.tableCell}>
-              <span
-                style={{
-                  backgroundColor: "#fef3c7",
-                  color: "#92400e",
-                  padding: "0.25rem 0.75rem",
-                  borderRadius: "9999px",
-                  fontSize: "0.875rem",
-                }}
-              >
-                Pending
-              </span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-);
-
-
-
-
-// Component for Check Stock Content
-const CheckStockContent = () => (
-  <div>
-    <h1
-      style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "1.5rem" }}
-    >
-      Check Stock
-    </h1>
-    <div style={styles.card}>
-      <h2 style={styles.cardTitle}>Current Stock Levels</h2>
-      {/* Add your stock check functionality here */}
-      <p>Stock check functionality will be implemented here</p>
-    </div>
-  </div>
-);
-
-// Component for My Orders Content
-const MyOrdersContent = () => (
-  <div>
-    <h1
-      style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "1.5rem" }}
-    >
-      My Orders
-    </h1>
-    <div style={styles.card}>
-      <h2 style={styles.cardTitle}>Order History</h2>
-      {/* Add your orders list here */}
-      <p>Orders list will be implemented here</p>
-    </div>
-  </div>
-);
-
-const WorkerDashboard = () => {
-  const [currentView, setCurrentView] = useState("dashboard");
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
-
-  const renderContent = () => {
-    switch (currentView) {
-      case "dashboard":
-        return <DashboardContent />;
-      case "newSale":
-        return <NewSaleContent />;
-      case "checkStock":
-        return <CheckStockContent />;
-      case "myOrders":
-        return <MyOrdersContent />;
-      default:
-        return <DashboardContent />;
-    }
-  };
+  );
 
   return (
-    <div style={styles.container}>
-      <button
-        style={styles.menuButton}
-        onClick={() => setSidebarOpen(!isSidebarOpen)}
-      >
-        <Menu />
-      </button>
-
-      <div
-        style={{
-          ...styles.sidebar,
-          ...(isSidebarOpen ? {} : styles.sidebarHidden),
-        }}
-      >
-        <div style={styles.logo}>
-          <img
-            src="/api/placeholder/64/64"
-            alt="ABM Logo"
-            style={{ borderRadius: "50%" }}
-          />
-        </div>
-        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <div style={{ fontWeight: "bold" }}>Worker View</div>
-        </div>
-
-        <nav style={styles.nav}>
-          <div
-            style={{
-              ...styles.navItem,
-              ...(currentView === "dashboard" ? styles.navItemActive : {}),
-            }}
-            onClick={() => setCurrentView("dashboard")}
-          >
-            <BarChart style={styles.navIcon} />
-            <span>Dashboard</span>
-          </div>
-          <div
-            style={{
-              ...styles.navItem,
-              ...(currentView === "newSale" ? styles.navItemActive : {}),
-            }}
-            onClick={() => setCurrentView("newSale")}
-          >
-            <ShoppingCart style={styles.navIcon} />
-            <span>New Sale</span>
-          </div>
-          <div
-            style={{
-              ...styles.navItem,
-              ...(currentView === "checkStock" ? styles.navItemActive : {}),
-            }}
-            onClick={() => setCurrentView("checkStock")}
-          >
-            <Package style={styles.navIcon} />
-            <span>Check Stock</span>
-          </div>
-          <div
-            style={{
-              ...styles.navItem,
-              ...(currentView === "myOrders" ? styles.navItemActive : {}),
-            }}
-            onClick={() => setCurrentView("myOrders")}
-          >
-            <ClipboardList style={styles.navIcon} />
-            <span>My Orders</span>
-          </div>
-        </nav>
-
-        <button style={styles.signOutButton}>
-          <LogOut style={{ marginRight: "0.5rem" }} />
-          <span>Sign Out</span>
-        </button>
+    <div style={styled.mainWrapper}>
+      <div style={styles.welcomeHeader}>
+        <h1 style={styles.welcomeTitle}>Welcome back, John!</h1>
+        <p style={styles.welcomeDate}>
+          {new Date().toLocaleDateString("en-US", { 
+            weekday: "long", 
+            year: "numeric", 
+            month: "long", 
+            day: "numeric" 
+          })}
+        </p>
       </div>
 
-      <main style={styles.mainContent}>{renderContent()}</main>
+      <div style={styles.statsGrid}>
+        {stats.map((stat, index) => (
+          <div key={index} style={styles.statCard}>
+            <div style={{
+              ...styles.statIcon,
+              backgroundColor: stat.color + "20",
+              color: stat.color
+            }}>
+              {stat.icon}
+            </div>
+            <div style={styles.statInfo}>
+              <p style={styles.statLabel}>{stat.title}</p>
+              <p style={styles.statValue}>{stat.value}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={styled.dashboardGrid}>
+        <div style={styles.chartCard}>
+          <h3 style={styles.chartTitle}>Weekly Sales Performance</h3>
+          <div style={{ height: "300px" }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={salesData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="day" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="sales" fill="#4f46e5" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div style={styles.activityCard}>
+          <h3 style={styles.activityTitle}>Recent Activity</h3>
+          <div style={styles.activityList}>
+            {[1, 2, 3].map((_, index) => (
+              <div key={index} style={styles.activityItem}>
+                <div style={{
+                  ...styles.activityIcon,
+                  backgroundColor: "#4f46e520",
+                  color: "#4f46e5"
+                }}>
+                  <FiDollarSign />
+                </div>
+                <div style={styles.activityContent}>
+                  <p style={styles.activityText}>New sale completed</p>
+                  <p style={styles.activityTime}>2 minutes ago</p>
+                </div>
+                <div style={styles.activityAmount}>
+                  GH₵ 350
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <button 
+        style={styles.pendingButton}
+        onClick={() => setShowPendingModal(true)}
+      >
+        <FiTruck />
+        Pending Sales
+        <span style={styles.pendingBadge}>
+          {pendingSales.length}
+        </span>
+      </button>
+
+      {showPendingModal && <PendingSalesModal />}
+    </div>
+  );
+};
+
+const WorkerDashboard = () => {
+  return (
+    <div style={styled.container}>
+      <NavigationTabWorker />
+      <DashboardContent />
     </div>
   );
 };

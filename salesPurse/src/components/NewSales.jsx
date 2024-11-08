@@ -1,224 +1,253 @@
 import { useState } from "react";
 import { newSalesStyles as styles } from "../styles/newSales";
+import { FiPrinter, FiPlus, FiTrash2, FiSave } from "react-icons/fi";
 
 const NewSaleContent = () => {
-  const [saleData, setSaleData] = useState({
+  // Dummy product database (will be replaced with real DB later)
+  const availableProducts = [
+    { id: 1, name: "Excavator Parts", basePrice: 2500 },
+    { id: 2, name: "Hydraulic Pump", basePrice: 1800 },
+    { id: 3, name: "Engine Filter", basePrice: 350 },
+    { id: 4, name: "Track Chains", basePrice: 4200 },
+    { id: 5, name: "Bucket Teeth", basePrice: 750 }
+  ];
+
+  const [formData, setFormData] = useState({
     customerName: "",
     customerPhone: "",
-    customerEmail: "",
-    paymentMethod: "cash",
-    products: [{ id: 1, name: "", quantity: 1, price: "", discount: 0 }],
+    products: [{ name: "", quantity: 1, price: 0 }],
+    message: "",
+    discount: 0
   });
 
-  const handleCustomerChange = (e) => {
-    setSaleData({
-      ...saleData,
-      [e.target.name]: e.target.value,
-    });
+  // Check if product details are valid
+  const isProductDetailsValid = () => {
+    return formData.products.every(product => 
+      product.name !== "" && 
+      Number(product.quantity) > 0 && 
+      Number(product.price) > 0
+    );
   };
 
+  // Handle product selection
   const handleProductChange = (index, field, value) => {
-    const updatedProducts = [...saleData.products];
-    updatedProducts[index] = {
-      ...updatedProducts[index],
-      [field]: value,
-    };
-    setSaleData({
-      ...saleData,
-      products: updatedProducts,
-    });
-  };
-
-  const addProduct = () => {
-    setSaleData({
-      ...saleData,
-      products: [
-        ...saleData.products,
-        { id: Date.now(), name: "", quantity: 1, price: "", discount: 0 },
-      ],
-    });
-  };
-
-  const removeProduct = (index) => {
-    if (saleData.products.length > 1) {
-      const updatedProducts = saleData.products.filter((_, i) => i !== index);
-      setSaleData({
-        ...saleData,
-        products: updatedProducts,
-      });
+    const updatedProducts = [...formData.products];
+    
+    if (field === "name") {
+      const selectedProduct = availableProducts.find(p => p.name === value);
+      updatedProducts[index] = {
+        ...updatedProducts[index],
+        name: value,
+        price: selectedProduct?.basePrice || 0
+      };
+    } else {
+      updatedProducts[index][field] = value;
     }
+    
+    setFormData({ ...formData, products: updatedProducts });
+  };
+
+  // Calculate totals
+  const calculateSubtotal = () => {
+    return formData.products.reduce((sum, product) => 
+      sum + (Number(product.price) * Number(product.quantity)), 0
+    );
   };
 
   const calculateTotal = () => {
-    return saleData.products.reduce((total, product) => {
-      const subtotal = (product.price || 0) * (product.quantity || 0);
-      const discount = (subtotal * (product.discount || 0)) / 100;
-      return total + (subtotal - discount);
-    }, 0);
+    const subtotal = calculateSubtotal();
+    const discountAmount = (subtotal * Number(formData.discount)) / 100;
+    return subtotal - discountAmount;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Submitting sale:", saleData);
+  // Handle form submission
+  const handleCompleteSale = () => {
+    if (isProductDetailsValid()) {
+      console.log("Completing sale:", formData);
+      // Add your sale completion logic here
+    }
+  };
+
+  const handleSavePending = () => {
+    if (isProductDetailsValid()) {
+      console.log("Saving to pending:", formData);
+      // Add your pending sale logic here
+    }
+  };
+
+  // Add/Remove product rows
+  const addProductRow = () => {
+    setFormData({
+      ...formData,
+      products: [...formData.products, { name: "", quantity: 1, price: 0 }]
+    });
+  };
+
+  const removeProductRow = (index) => {
+    if (formData.products.length > 1) {
+      const updatedProducts = formData.products.filter((_, i) => i !== index);
+      setFormData({ ...formData, products: updatedProducts });
+    }
   };
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.header}>Create New Sale</h1>
+      <div style={styles.header}>
+        <h1 style={styles.headerTitle}>New Sale</h1>
+      </div>
 
-      <form onSubmit={handleSubmit} style={styles.formCard}>
-        {/* Customer Information Section */}
-        <div style={styles.formSection}>
-          <h2 style={styles.sectionTitle}>Customer Information</h2>
-          <div style={styles.formGrid}>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Customer Name*</label>
-              <input
-                type="text"
-                name="customerName"
-                value={saleData.customerName}
-                onChange={handleCustomerChange}
-                style={styles.input}
-                required
-              />
-            </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Phone Number*</label>
-              <input
-                type="tel"
-                name="customerPhone"
-                value={saleData.customerPhone}
-                onChange={handleCustomerChange}
-                style={styles.input}
-                required
-              />
-            </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Payment Method</label>
-              <select
-                name="paymentMethod"
-                value={saleData.paymentMethod}
-                onChange={handleCustomerChange}
-                style={styles.select}
-              >
-                <option value="cash">Cash</option>
-                <option value="card">Card</option>
-                <option value="momo">Mobile Money</option>
-                <option value="bank">Bank Transfer</option>
-              </select>
-            </div>
+      <div style={styles.formCard}>
+        {/* Customer Details */}
+        <div style={styles.customerSection}>
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Customer Name</label>
+            <input
+              type="text"
+              value={formData.customerName}
+              onChange={(e) => setFormData({...formData, customerName: e.target.value})}
+              style={styles.input}
+              placeholder="Enter customer name"
+            />
+          </div>
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Phone Number</label>
+            <input
+              type="tel"
+              value={formData.customerPhone}
+              onChange={(e) => setFormData({...formData, customerPhone: e.target.value})}
+              style={styles.input}
+              placeholder="Enter phone number"
+            />
           </div>
         </div>
 
         {/* Products Section */}
-        <div style={styles.formSection}>
-          <h2 style={styles.sectionTitle}>Products</h2>
-          <div style={styles.productsContainer}>
-            {saleData.products.map((product, index) => (
-              <div key={product.id} style={styles.productRow}>
-                <div style={styles.formGroup}>
-                  <label style={styles.label}>Product Name*</label>
-                  <input
-                    type="text"
-                    value={product.name}
-                    onChange={(e) =>
-                      handleProductChange(index, "name", e.target.value)
-                    }
-                    style={styles.input}
-                    required
-                  />
-                </div>
-                <div style={styles.formGroup}>
-                  <label style={styles.label}>Quantity*</label>
-                  <input
-                    type="number"
-                    value={product.quantity}
-                    onChange={(e) =>
-                      handleProductChange(
-                        index,
-                        "quantity",
-                        parseInt(e.target.value)
-                      )
-                    }
-                    style={styles.input}
-                    min="1"
-                    required
-                  />
-                </div>
-                <div style={styles.formGroup}>
-                  <label style={styles.label}>Unit Price*</label>
-                  <input
-                    type="number"
-                    value={product.price}
-                    onChange={(e) =>
-                      handleProductChange(
-                        index,
-                        "price",
-                        parseFloat(e.target.value)
-                      )
-                    }
-                    style={styles.input}
-                    min="0"
-                    step="0.01"
-                    required
-                  />
-                </div>
-                <div style={styles.formGroup}>
-                  <label style={styles.label}>Discount (%)</label>
-                  <input
-                    type="number"
-                    value={product.discount}
-                    onChange={(e) =>
-                      handleProductChange(
-                        index,
-                        "discount",
-                        parseFloat(e.target.value)
-                      )
-                    }
-                    style={styles.input}
-                    min="0"
-                    max="100"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => removeProduct(index)}
-                  style={{ ...styles.button, ...styles.removeButton }}
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
+        <div style={styles.productSection}>
+          <div style={styles.sectionHeader}>
+            <h2 style={styles.sectionTitle}>Products</h2>
+            <button onClick={addProductRow} style={styles.addButton}>
+              <FiPlus /> Add Product
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={addProduct}
-            style={{ ...styles.button, ...styles.addButton }}
-          >
-            Add Product
-          </button>
+
+          {formData.products.map((product, index) => (
+            <div key={index} style={styles.productRow}>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Product</label>
+                <select
+                  value={product.name}
+                  onChange={(e) => handleProductChange(index, "name", e.target.value)}
+                  style={styles.select}
+                >
+                  <option value="">Select a product</option>
+                  {availableProducts.map((prod) => (
+                    <option key={prod.id} value={prod.name}>
+                      {prod.name} - GH₵{prod.basePrice}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Quantity</label>
+                <input
+                  type="number"
+                  value={product.quantity}
+                  onChange={(e) => handleProductChange(index, "quantity", e.target.value)}
+                  style={styles.input}
+                  min="1"
+                />
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Price (GH₵)</label>
+                <input
+                  type="number"
+                  value={product.price}
+                  onChange={(e) => handleProductChange(index, "price", e.target.value)}
+                  style={styles.input}
+                  min="0"
+                />
+              </div>
+
+              {formData.products.length > 1 && (
+                <button 
+                  onClick={() => removeProductRow(index)}
+                  style={styles.removeButton}
+                >
+                  <FiTrash2 />
+                </button>
+              )}
+            </div>
+          ))}
         </div>
 
-        {/* Summary Section */}
-        <div style={styles.summary}>
-          <h2 style={styles.sectionTitle}>Order Summary</h2>
-          <div style={styles.summaryRow}>
+        {/* Totals Section */}
+        <div style={styles.totalsSection}>
+          <div style={styles.totalRow}>
             <span>Subtotal:</span>
-            <span>GHC {calculateTotal().toFixed(2)}</span>
+            <span>GH₵ {calculateSubtotal().toFixed(2)}</span>
           </div>
           <div style={styles.totalRow}>
-            <span>Total Amount:</span>
-            <span>GHC {calculateTotal().toFixed(2)}</span>
+            <span>Discount (%):</span>
+            <input
+              type="number"
+              value={formData.discount}
+              onChange={(e) => setFormData({...formData, discount: e.target.value})}
+              style={styles.discountInput}
+              min="0"
+              max="100"
+            />
+          </div>
+          <div style={styles.totalRow}>
+            <span style={styles.grandTotal}>Total:</span>
+            <span style={styles.grandTotal}>GH₵ {calculateTotal().toFixed(2)}</span>
           </div>
         </div>
 
-        <button
-          type="submit"
-          style={{ ...styles.button, ...styles.submitButton }}
-        >
-          Complete Sale
-        </button>
-      </form>
+        {/* Message Section */}
+        <div style={styles.messageSection}>
+          <label style={styles.label}>Message (Optional)</label>
+          <textarea
+            value={formData.message}
+            onChange={(e) => setFormData({...formData, message: e.target.value})}
+            style={styles.textarea}
+            placeholder="Add a message to the receipt..."
+            rows={3}
+          />
+        </div>
+
+        {/* Action Buttons */}
+        <div style={styles.actionButtons}>
+          <button style={styles.printButton}>
+            <FiPrinter /> Print Receipt
+          </button>
+          <div style={styles.mainActions}>
+            <button 
+              onClick={handleCompleteSale}
+              style={{
+                ...styles.completeButton,
+                opacity: isProductDetailsValid() ? 1 : 0.5,
+                cursor: isProductDetailsValid() ? "pointer" : "not-allowed",
+              }}
+              disabled={!isProductDetailsValid()}
+            >
+              Complete Sale
+            </button>
+            <button 
+              onClick={handleSavePending}
+              style={{
+                ...styles.pendingButton,
+                opacity: isProductDetailsValid() ? 1 : 0.5,
+                cursor: isProductDetailsValid() ? "pointer" : "not-allowed",
+              }}
+              disabled={!isProductDetailsValid()}
+            >
+              <FiSave /> Save as Pending
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -32,7 +32,8 @@ async function createTables() {
       // Users table
       db.run(`CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL UNIQUE,
+                username TEXT NOT NULL UNIQUE,
+                name TEXT NOT NULL,
                 password TEXT NOT NULL,
                 phone TEXT NOT NULL,
                 type TEXT NOT NULL
@@ -44,26 +45,38 @@ async function createTables() {
                 customer_name TEXT NOT NULL,
                 phone TEXT,
                 payment_method TEXT,
-                item TEXT,
-                quantity INTEGER,
-                total FLOAT,
-                date DATETIME DEFAULT CURRENT_TIMESTAMP
+                product TEXT NOT NULL,
+                quantity INTEGER NOT NULL,
+                revenue FLOAT NOT NULL,
+                worker_id INTEGER NOT NULL,
+                worker_name TEXT NOT NULL,
+                status TEXT DEFAULT 'pending',
+                date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (worker_id) REFERENCES users(id)
             )`);
 
       // Products table with BLOB for picture
+      // Database table creation
       db.run(
         `CREATE TABLE IF NOT EXISTS products (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                quantity INTEGER DEFAULT 0,
-                price FLOAT,
-                picture BLOB
-            )`,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    quantity INTEGER DEFAULT 0,
+    price FLOAT,
+    picture BLOB
+  )`,
         (err) => {
           if (err) reject(err);
           else resolve();
         }
       );
+
+      // After creating tables, add some initial sales data
+      db.run(`INSERT OR IGNORE INTO sales (product, quantity, revenue, customer_name, phone, payment_method) VALUES 
+        ('Widget A', 100, 5000, 'John Doe', '+233123456789', 'cash'),
+        ('Gadget B', 50, 7500, 'Jane Smith', '+233987654321', 'card'),
+        ('Doohickey C', 200, 10000, 'Bob Johnson', '+233456789123', 'cash'),
+        ('Thingamajig D', 75, 3750, 'Alice Brown', '+233789123456', 'mobile_money')`);
     });
   });
 }

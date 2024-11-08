@@ -4,12 +4,11 @@ const dashBoardSlice = createSlice({
   name: "dashboard",
   initialState: {
     userDetails: null,
-    appState: "start",
+    appState: "",
   },
   reducers: {
     setDashboard(state, action) {
       state.userDetails = action.payload.userDetails;
-      state.appState = action.payload.appState;
     },
   },
 });

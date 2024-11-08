@@ -1,40 +1,88 @@
+import { useState, useEffect } from "react";
 import "../styles/sales.css";
 
 const SalesDashboard = () => {
-  // Static sales data - replace this with actual data from your backend
-  const salesData = [
-    { id: 1, product: "Widget A", quantity: 100, revenue: 5000 },
-    { id: 2, product: "Gadget B", quantity: 50, revenue: 7500 },
-    { id: 3, product: "Doohickey C", quantity: 200, revenue: 10000 },
-    { id: 4, product: "Thingamajig D", quantity: 75, revenue: 3750 },
-  ];
+  const [salesData, setSalesData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filterStatus, setFilterStatus] = useState("all");
 
-  // Calculate total revenue
-  const totalRevenue = salesData.reduce((sum, sale) => sum + sale.revenue, 0);
+  useEffect(() => {
+    fetchSalesData();
+  }, []);
+
+  const fetchSalesData = async () => {
+    try {
+      const sales = await window.api.getSalesWithDetails();
+      setSalesData(sales);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (saleId) => {
+    try {
+      await window.api.completeSale(saleId);
+      await fetchSalesData(); // Refresh data
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const filteredSales = salesData.filter(sale => {
+    if (filterStatus === "all") return true;
+    return sale.status === filterStatus;
+  });
 
   return (
     <div className="sales-dashboard">
       <h1>Sales Dashboard</h1>
-      <div className="total-revenue">
-        <h2>Total Revenue</h2>
-        <p>GH₵{totalRevenue.toLocaleString()}</p>
+      
+      <div className="filters">
+        <select 
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+        >
+          <option value="all">All Sales</option>
+          <option value="pending">Pending</option>
+          <option value="completed">Completed</option>
+        </select>
       </div>
+
       <div className="sales-table">
-        <h2>Sales Breakdown</h2>
         <table>
           <thead>
             <tr>
+              <th>Date</th>
+              <th>Customer</th>
               <th>Product</th>
-              <th>Quantity Sold</th>
-              <th>Revenue</th>
+              <th>Amount</th>
+              <th>Worker</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {salesData.map((sale) => (
-              <tr key={sale.id}>
+            {filteredSales.map((sale) => (
+              <tr key={sale.id} className={`status-${sale.status}`}>
+                <td>{new Date(sale.date).toLocaleDateString()}</td>
+                <td>{sale.customer_name}</td>
                 <td>{sale.product}</td>
-                <td>{sale.quantity}</td>
                 <td>GH₵{sale.revenue.toLocaleString()}</td>
+                <td>{sale.worker_name}</td>
+                <td>{sale.status}</td>
+                <td>
+                  {sale.status === 'pending' && (
+                    <button
+                      onClick={() => handleStatusChange(sale.id)}
+                      className="complete-button"
+                    >
+                      Complete
+                    </button>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>

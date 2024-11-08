@@ -37,7 +37,9 @@ app.whenReady().then(async () => {
     await initializeDatabase();
     setupIpcHandlers();
     CreateMainWindow();
-  } catch {}
+  } catch (error) {
+    console.error("Error during initialization:", error);
+  }
 });
 
 // Ensure the app closes correctly

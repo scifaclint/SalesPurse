@@ -5,79 +5,46 @@ import Animation from "../components/Animation";
 import appLogo from "../assets/appLogo.png";
 import { useUsers } from "../hooks/useDatabase";
 import { useDispatch } from "react-redux";
-import { setDashboard } from "../features/appstate/dashboard";
+import { loginSuccess } from "../features/account/accountSlice";
+
 const SalesPulseLogin = () => {
-  const [isAdmin, setIsAdmin] = useState(false);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { users } = useUsers();
+  const [isAdmin, setIsAdmin] = useState(true);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();
-  const { users } = useUsers();
-  const dispatch = useDispatch();
+  const [error, setError] = useState("");
 
-  // go to admin dashboard
-  const goToAdmin = () => {
-    navigate("/admin");
-  };
-  // navigate to worker
-  const goToWorker = () => {
-    navigate("/worker");
-  };
+  const handleLogin = () => {
+    setError("");
+    
+    for (const user of users) {
+      if (
+        username.trim() === user.username &&
+        password.trim() === user.password
+      ) {
+        // Dispatch complete user data to account slice
+        dispatch(
+          loginSuccess({
+            id: user.id,
+            name: user.name,
+            username: user.username,
+            type: user.type,
+            phone: user.phone
+          })
+        );
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    if (!username || !password) {
-      alert("Input Fields Cannot be Empty");
-    }
-    // handle admin here
-    if (isAdmin) {
-      for (const item of users) {
-        if (
-          username.trim() === item.name &&
-          item.type === "admin" &&
-          password.trim() === password
-        ) {
-          dispatch(
-            setDashboard({
-              userDetails: {
-                name: item.name,
-                type: item.type,
-                phone: item.phone,
-              },
-              appState: "admin",
-            })
-          );
-          goToAdmin();
-          break;
+        // Navigate based on user type
+        if (user.type === "admin") {
+          navigate("/admin");
         } else {
-          alert("Incorrect login details, or you do not have admin access. ");
+          navigate("/worker");
         }
+        return;
       }
     }
-    // handle worker
-    if (!isAdmin) {
-      for (const item of users) {
-        if (
-          username.trim() === item.name &&
-          item.type === "worker" &&
-          password.trim() === password
-        ) {
-          dispatch(
-            setDashboard({
-              userDetails: {
-                name: item.name,
-                type: item.type,
-                phone: item.phone,
-              },
-              appState: "worker",
-            })
-          );
-          goToWorker();
-          break;
-        } else {
-          alert("Incorrect login details, or you do not have admin access. ");
-        }
-      }
-    }
+    setError("Invalid credentials");
   };
 
   return (

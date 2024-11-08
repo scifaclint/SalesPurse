@@ -34,4 +34,8 @@ contextBridge.exposeInMainWorld("api", {
     return ipcRenderer.invoke("update-product", product);
   },
   deleteProduct: (id) => ipcRenderer.invoke("delete-product", { id }),
+
+  // Add new methods for sales data
+  getSalesWithRevenue: () => ipcRenderer.invoke("get-sales-with-revenue"),
+  getTotalRevenue: () => ipcRenderer.invoke("get-total-revenue"),
 });

@@ -81,11 +81,11 @@ const InventoryManagement = () => {
         imageFile: selectedImage,
       };
 
-      addProduct(
+      await addProduct(
         newProduct.name,
         newProduct.quantity,
-        newProduct.picture,
-        newProduct.price
+        newProduct.price,
+        newProduct.picture
       );
       setProductList([...productList, newProduct]);
       clearFields();
@@ -98,7 +98,13 @@ const InventoryManagement = () => {
   const handleUpdateProduct = async () => {
     if (selectedProduct) {
       try {
-        updateProduct(selectedProduct.id);
+        await updateProduct(
+          selectedProduct.id,
+          selectedProduct.name,
+          selectedProduct.quantity,
+          selectedProduct.price,
+          selectedImage
+        );
         clearFields();
       } catch (error) {
         console.error("Error updating product:", error);
@@ -110,7 +116,7 @@ const InventoryManagement = () => {
   const handleDeleteProduct = async () => {
     if (selectedProduct) {
       try {
-        deleteProduct(selectedProduct.id);
+        await deleteProduct(selectedProduct.id);
         clearFields();
       } catch (error) {
         console.error("Error deleting product:", error);
@@ -147,15 +153,15 @@ const InventoryManagement = () => {
       maxWidth: "1200px",
       margin: "0 auto",
       padding: "20px",
+      gap: "20px",
     },
     leftPanel: {
-      flex: 1,
-      marginRight: "20px",
+      flex: "0 0 400px",
+      display: "flex",
+      flexDirection: "column",
     },
     rightPanel: {
       flex: 1,
-      display: "flex",
-      flexDirection: "column",
     },
     input: {
       width: "100%",
@@ -188,6 +194,9 @@ const InventoryManagement = () => {
     disabledButton: {
       backgroundColor: "#ccc",
       cursor: "not-allowed",
+    },
+    buttonsContainer: {
+      marginBottom: "20px",
     },
     productList: {
       border: "1px solid #ccc",
@@ -235,6 +244,7 @@ const InventoryManagement = () => {
       padding: "15px",
       backgroundColor: "#f8f9fa",
       borderRadius: "4px",
+      marginBottom: "20px",
     },
     summaryItem: {
       marginBottom: "10px",
@@ -304,7 +314,7 @@ const InventoryManagement = () => {
           }
         />
 
-        <div>
+        <div style={styles.buttonsContainer}>
           <button
             style={{
               ...styles.button,
@@ -327,7 +337,7 @@ const InventoryManagement = () => {
           </button>
           <button
             style={{
-              ...styles.button,
+              ...styles.clearButton,
               ...(selectedProduct ? {} : styles.disabledButton),
             }}
             onClick={handleDeleteProduct}
@@ -343,19 +353,16 @@ const InventoryManagement = () => {
         <div style={styles.summarySection}>
           <h3>Inventory Summary</h3>
           <div style={styles.summaryItem}>
-            Total Items in Stock: {totalItems}
+            <strong>Total Items:</strong> {totalItems}
           </div>
           <div style={styles.summaryItem}>
-            Total Inventory Value: GH₵ {totalValue.toFixed(2)}
+            <strong>Total Inventory Value:</strong> ₵{totalValue.toFixed(2)}
           </div>
           <div style={styles.summaryItem}>
-            Average Product Price: GH₵ {averagePrice.toFixed(2)}
+            <strong>Average Price Per Item:</strong> ₵{averagePrice.toFixed(2)}
           </div>
           <div style={styles.summaryItem}>
-            Low Stock Items (less than 5): {lowStockItems}
-          </div>
-          <div style={styles.summaryItem}>
-            Total Unique Products: {productList.length}
+            <strong>Low Stock Items:</strong> {lowStockItems}
           </div>
         </div>
       </div>
@@ -375,13 +382,15 @@ const InventoryManagement = () => {
           </button>
         </div>
         <div style={styles.productList}>
-          {filteredProducts.map((product) => (
+          {filteredProducts.map((product, index) => (
             <div
-              key={product.id}
+              key={index}
               style={styles.productItem}
               onClick={() => setSelectedProduct(product)}
             >
-              {product.name} - Quantity: {product.quantity}
+              <h4>{product.name}</h4>
+              <p>Price: ₵{product.price}</p>
+              <p>Quantity: {product.quantity}</p>
             </div>
           ))}
         </div>

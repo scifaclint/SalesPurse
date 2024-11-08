@@ -1,10 +1,9 @@
 import { configureStore } from "@reduxjs/toolkit";
 
-import accountReducer from "./features/account/accountSlice";
 import dashboardReducer from "./features/appstate/dashboard";
 import salesReducer from "./features/products/createSales";
 import productReducer from "./features/products/productSlice";
-
+import accountReducer from "./features/account/accountSlice";
 const store = configureStore({
   reducer: {
     account: accountReducer,
@@ -12,6 +11,11 @@ const store = configureStore({
     sales: salesReducer,
     products: productReducer,
   },
+});
+
+// Debug subscriber
+store.subscribe(() => {
+  console.log('Store updated:', store.getState());
 });
 
 export default store;

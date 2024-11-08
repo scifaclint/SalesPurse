@@ -1,6 +1,5 @@
 import "../styles/dashboard.css";
 
-
 const inventoryData = [
   { name: "Excavators", value: 25 },
   { name: "Parts", value: 1500 },
@@ -8,7 +7,7 @@ const inventoryData = [
 
 const Dashboard = () => {
   const totalItems = inventoryData.reduce((sum, item) => sum + item.value, 0);
-  const totalStockValue = 2500000; 
+  const totalStockValue = 2500000;
   const topSellingPart = "Hydraulic Pumps";
   const lowStockAlert = "Low stock alert: Excavator Tracks";
 

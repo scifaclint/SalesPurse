@@ -3,7 +3,7 @@ import { userOperations } from "../database/userOperations.js";
 import { salesOperations } from "../database/salesOperations.js";
 import { productOperations } from "../database/productOperations.js";
 
-export function setupIpcHandlers() {
+export const setupIpcHandlers = () => {
   // Users
   ipcMain.handle("add-user", async (event, { name, password,phone,type }) => {
     return await userOperations.addUser(name, password,phone,type);
@@ -68,4 +68,24 @@ export function setupIpcHandlers() {
   ipcMain.handle("delete-product", async (event, { id }) => {
     return await productOperations.deleteProduct(id);
   });
-}
+
+  ipcMain.handle("get-sales-with-revenue", async () => {
+    try {
+      const sales = await salesOperations.getSalesWithRevenue();
+      return sales;
+    } catch (error) {
+      console.error("Error in get-sales-with-revenue:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("get-total-revenue", async () => {
+    try {
+      const total = await salesOperations.getTotalRevenue();
+      return total;
+    } catch (error) {
+      console.error("Error in get-total-revenue:", error);
+      throw error;
+    }
+  });
+};

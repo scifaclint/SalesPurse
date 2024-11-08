@@ -1,34 +1,14 @@
 import  { useState } from "react";
-
+import { useUsers } from "../hooks/useDatabase";
 const UserAccountManagement = () => {
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john.doe@example.com",
-      username: "john_doe",
-      userType: "admin",
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      email: "jane.smith@example.com",
-      username: "jane_smith",
-      userType: "worker",
-    },
-    {
-      id: 3,
-      name: "Bob Johnson",
-      email: "bob.johnson@example.com",
-      username: "bob_johnson",
-      userType: "worker",
-    },
-  ]);
+  const {users,addUser,updateUser,deleteUser} = useUsers()
+  const email = "implementlater@gmail"
+  const [usersd, setUsers] = useState();
 
   const [selectedUser, setSelectedUser] = useState(null);
   const [newUser, setNewUser] = useState({
     name: "",
-    email: "",
+    phone: "",
     username: "",
     password: "",
     userType: "worker",
@@ -46,11 +26,11 @@ const UserAccountManagement = () => {
   };
 
   const handleAddUser = () => {
-    if (newUser.name && newUser.email && newUser.username && newUser.password) {
+    if (newUser.name && newUser.phone && newUser.username && newUser.password) {
       setUsers([...users, { ...newUser, id: Date.now() }]);
       setNewUser({
         name: "",
-        email: "",
+        phone: "",
         username: "",
         password: "",
         userType: "worker",
@@ -79,7 +59,7 @@ const UserAccountManagement = () => {
     return users.filter(
       (user) =>
         user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.username.toLowerCase().includes(searchTerm.toLowerCase())
     );
   };
@@ -202,8 +182,8 @@ const UserAccountManagement = () => {
                 }}
               >
                 <div>{user.name}</div>
-                <div>{user.email}</div>
-                <div>Type: {user.userType}</div>
+                <div>{user.phone}</div>
+                <div>Type: {user.type}</div>
               </div>
             ))}
           </div>
@@ -223,10 +203,10 @@ const UserAccountManagement = () => {
               />
               <input
                 style={styles.input}
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={newUser.email}
+                type="phone"
+                name="phone"
+                placeholder="phone"
+                value={newUser.phone}
                 onChange={handleInputChange}
               />
               <input
@@ -248,7 +228,7 @@ const UserAccountManagement = () => {
               <select
                 style={styles.select}
                 name="userType"
-                value={newUser.userType}
+                value={newUser.type}
                 onChange={handleInputChange}
               >
                 <option value="worker">Worker</option>
@@ -279,10 +259,10 @@ const UserAccountManagement = () => {
               />
               <input
                 style={styles.input}
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={selectedUser.email}
+                type="phone"
+                name="phone"
+                placeholder="phone"
+                value={selectedUser.phone}
                 onChange={handleInputChange}
               />
               <input
@@ -296,7 +276,7 @@ const UserAccountManagement = () => {
               <select
                 style={styles.select}
                 name="userType"
-                value={selectedUser.userType}
+                value={selectedUser.type}
                 onChange={handleInputChange}
               >
                 <option value="worker">Worker</option>
