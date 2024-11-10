@@ -1,7 +1,8 @@
-import  { useState } from "react";
+import { useState } from "react";
 import { useUsers } from "../hooks/useDatabase";
+
 const UserAccountManagement = () => {
-  const {users,addUser,updateUser,deleteUser} = useUsers()
+  const { users, addUser, updateUser, deleteUser } = useUsers();
   const email = "implementlater@gmail"
   const [usersd, setUsers] = useState();
 
@@ -64,88 +65,12 @@ const UserAccountManagement = () => {
     );
   };
 
-  const styles = {
-    container: {
-      fontFamily: "Arial, sans-serif",
-      maxWidth: "1200px",
-      margin: "0 auto",
-      padding: "20px",
-    },
-    header: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: "20px",
-    },
-    searchBar: {
-      display: "flex",
-      marginBottom: "20px",
-    },
-    input: {
-      flex: 1,
-      padding: "10px",
-      marginRight: "10px",
-      border: "1px solid #ccc",
-      borderRadius: "4px",
-      margin: "2px",
-    },
-    button: {
-      padding: "10px 20px",
-      border: "none",
-      borderRadius: "4px",
-      cursor: "pointer",
-      backgroundColor: "#007bff",
-      color: "white",
-      marginRight: "10px",
-    },
-    buttonCancel: {
-      padding: "10px 20px",
-      border: "none",
-      borderRadius: "4px",
-      cursor: "pointer",
-      backgroundColor: "red",
-      color: "white",
-      marginRight: "10px",
-    },
-    grid: {
-      display: "grid",
-      gridTemplateColumns: "1fr 2fr",
-      gap: "20px",
-    },
-    userList: {
-      border: "1px solid #ccc",
-      borderRadius: "4px",
-      height: "400px",
-      overflowY: "auto",
-    },
-    userItem: {
-      padding: "10px",
-      borderBottom: "1px solid #eee",
-      cursor: "pointer",
-    },
-    selectedUser: {
-      backgroundColor: "#f0f0f0",
-    },
-    userDetails: {
-      padding: "20px",
-      border: "1px solid #ccc",
-      borderRadius: "4px",
-    },
-    select: {
-      width: "100%",
-      padding: "10px",
-      marginBottom: "10px",
-      border: "1px solid #ccc",
-      borderRadius: "4px",
-    },
-  };
-
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <h1>User Account Management</h1>
+    <div className="max-w-7xl mx-auto p-5 font-sans">
+      <div className="flex justify-between items-center mb-5">
+        <h1 className="text-2xl font-bold">User Account Management</h1>
         <button
-          style={styles.button}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
           onClick={() => {
             setIsAdding(true);
             setSelectedUser(null);
@@ -155,9 +80,9 @@ const UserAccountManagement = () => {
         </button>
       </div>
 
-      <div style={styles.searchBar}>
+      <div className="mb-5">
         <input
-          style={styles.input}
+          className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           type="text"
           placeholder="Search users..."
           value={searchTerm}
@@ -165,137 +90,146 @@ const UserAccountManagement = () => {
         />
       </div>
 
-      <div style={styles.grid}>
-        <div>
-          <h2>User List</h2>
-          <div style={styles.userList}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
+          <h2 className="text-xl font-semibold mb-3">User List</h2>
+          <div className="border border-gray-200 rounded h-[400px] overflow-y-auto">
             {handleSearch().map((user) => (
               <div
                 key={user.id}
-                style={{
-                  ...styles.userItem,
-                  ...(selectedUser?.id === user.id ? styles.selectedUser : {}),
-                }}
+                className={`p-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 
+                  ${selectedUser?.id === user.id ? 'bg-gray-100' : ''}`}
                 onClick={() => {
                   setSelectedUser(user);
                   setIsAdding(false);
                 }}
               >
-                <div>{user.name}</div>
-                <div>{user.phone}</div>
-                <div>Type: {user.type}</div>
+                <div className="font-medium">{user.name}</div>
+                <div className="text-gray-600 text-sm">{user.phone}</div>
+                <div className="text-gray-600 text-sm">Type: {user.type}</div>
               </div>
             ))}
           </div>
         </div>
 
-        <div style={styles.userDetails}>
+        <div className="lg:col-span-2 border border-gray-200 rounded p-6">
           {isAdding ? (
             <>
-              <h2>Add New User</h2>
-              <input
-                style={styles.input}
-                type="text"
-                name="name"
-                placeholder="Name"
-                value={newUser.name}
-                onChange={handleInputChange}
-              />
-              <input
-                style={styles.input}
-                type="phone"
-                name="phone"
-                placeholder="phone"
-                value={newUser.phone}
-                onChange={handleInputChange}
-              />
-              <input
-                style={styles.input}
-                type="text"
-                name="username"
-                placeholder="Username"
-                value={newUser.username}
-                onChange={handleInputChange}
-              />
-              <input
-                style={styles.input}
-                type="password"
-                name="password"
-                placeholder="Password"
-                value={newUser.password}
-                onChange={handleInputChange}
-              />
-              <select
-                style={styles.select}
-                name="userType"
-                value={newUser.type}
-                onChange={handleInputChange}
-              >
-                <option value="worker">Worker</option>
-                <option value="admin">Admin</option>
-              </select>
-              <button style={styles.button} onClick={handleAddUser}>
-                Add User
-              </button>
-              <button
-                style={styles.buttonCancel}
-                onClick={() => {
-                  setIsAdding(false);
-                }}
-              >
-                Cancel
-              </button>
+              <h2 className="text-xl font-semibold mb-4">Add New User</h2>
+              <div className="space-y-4">
+                <input
+                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  type="text"
+                  name="name"
+                  placeholder="Name"
+                  value={newUser.name}
+                  onChange={handleInputChange}
+                />
+                <input
+                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  type="phone"
+                  name="phone"
+                  placeholder="Phone"
+                  value={newUser.phone}
+                  onChange={handleInputChange}
+                />
+                <input
+                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  type="text"
+                  name="username"
+                  placeholder="Username"
+                  value={newUser.username}
+                  onChange={handleInputChange}
+                />
+                <input
+                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  type="password"
+                  name="password"
+                  placeholder="Password"
+                  value={newUser.password}
+                  onChange={handleInputChange}
+                />
+                <select
+                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  name="userType"
+                  value={newUser.type}
+                  onChange={handleInputChange}
+                >
+                  <option value="worker">Worker</option>
+                  <option value="admin">Admin</option>
+                </select>
+                <div className="flex gap-3">
+                  <button
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                    onClick={handleAddUser}
+                  >
+                    Add User
+                  </button>
+                  <button
+                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                    onClick={() => setIsAdding(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
             </>
           ) : selectedUser ? (
             <>
-              <h2>Edit User</h2>
-              <input
-                style={styles.input}
-                type="text"
-                name="name"
-                placeholder="Name"
-                value={selectedUser.name}
-                onChange={handleInputChange}
-              />
-              <input
-                style={styles.input}
-                type="phone"
-                name="phone"
-                placeholder="phone"
-                value={selectedUser.phone}
-                onChange={handleInputChange}
-              />
-              <input
-                style={styles.input}
-                type="text"
-                name="username"
-                placeholder="Username"
-                value={selectedUser.username}
-                onChange={handleInputChange}
-              />
-              <select
-                style={styles.select}
-                name="userType"
-                value={selectedUser.type}
-                onChange={handleInputChange}
-              >
-                <option value="worker">Worker</option>
-                <option value="admin">Admin</option>
-              </select>
-              <button style={styles.button} onClick={handleUpdateUser}>
-                Update User
-              </button>
-              <button
-                style={{ ...styles.button, backgroundColor: "#dc3545" }}
-                onClick={() => handleDeleteUser(selectedUser.id)}
-              >
-                Delete User
-              </button>
+              <h2 className="text-xl font-semibold mb-4">Edit User</h2>
+              <div className="space-y-4">
+                <input
+                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  type="text"
+                  name="name"
+                  placeholder="Name"
+                  value={selectedUser.name}
+                  onChange={handleInputChange}
+                />
+                <input
+                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  type="phone"
+                  name="phone"
+                  placeholder="Phone"
+                  value={selectedUser.phone}
+                  onChange={handleInputChange}
+                />
+                <input
+                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  type="text"
+                  name="username"
+                  placeholder="Username"
+                  value={selectedUser.username}
+                  onChange={handleInputChange}
+                />
+                <select
+                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  name="userType"
+                  value={selectedUser.type}
+                  onChange={handleInputChange}
+                >
+                  <option value="worker">Worker</option>
+                  <option value="admin">Admin</option>
+                </select>
+                <div className="flex gap-3">
+                  <button
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                    onClick={handleUpdateUser}
+                  >
+                    Update User
+                  </button>
+                  <button
+                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                    onClick={() => handleDeleteUser(selectedUser.id)}
+                  >
+                    Delete User
+                  </button>
+                </div>
+              </div>
             </>
           ) : (
-            <p>
-              Select a user to edit or click Add New User to create a new
-              account.
+            <p className="text-gray-600">
+              Select a user to edit or click Add New User to create a new account.
             </p>
           )}
         </div>
