@@ -5,11 +5,18 @@ export const userOperations = {
     const db = getDatabase();
     return new Promise((resolve, reject) => {
       db.run(
-        "INSERT INTO users (username, name,password,phone,type) VALUES (?, ?,?,?,?)",
+        `INSERT INTO users (
+          username, 
+          name, 
+          password, 
+          phone, 
+          type, 
+          created_at, 
+          last_login
+        ) VALUES (?, ?, ?, ?, ?, DATETIME('now'), NULL)`,
         [username, name, password, phone, type],
         function (err) {
           if (err) {
-            // Check if the error is due to the UNIQUE constraint on 'name'
             if (
               err.code === "SQLITE_CONSTRAINT" &&
               err.message.includes("UNIQUE constraint failed")
@@ -20,10 +27,10 @@ export const userOperations = {
                 )
               );
             } else {
-              reject(err); // For other types of errors
+              reject(err);
             }
           } else {
-            resolve(this.lastID); // Success: resolve with the new user's ID
+            resolve(this.lastID);
           }
         }
       );
@@ -34,7 +41,17 @@ export const userOperations = {
     const db = getDatabase();
     return new Promise((resolve, reject) => {
       db.all(
-        "SELECT id,username,name,password,phone,type FROM users",
+        `SELECT 
+          id,
+          username,
+          name,
+          password,
+          phone,
+          type,
+          created_at,
+          last_login
+        FROM users
+        ORDER BY created_at DESC`,
         [],
         (err, rows) => {
           if (err) reject(err);
@@ -44,12 +61,72 @@ export const userOperations = {
     });
   },
 
+  async getUserById(id) {
+    const db = getDatabase();
+    return new Promise((resolve, reject) => {
+      db.get(
+        `SELECT 
+          id,
+          username,
+          name,
+          password,
+          phone,
+          type,
+          created_at,
+          last_login
+        FROM users 
+        WHERE id = ?`,
+        [id],
+        (err, row) => {
+          if (err) reject(err);
+          resolve(row);
+        }
+      );
+    });
+  },
+
   async updateUser(id, username, name, password, phone, type) {
     const db = getDatabase();
     return new Promise((resolve, reject) => {
       db.run(
-        "UPDATE users SET username = ?, name = ? ,password = ?,phone = ?,type = ? WHERE id = ?",
+        `UPDATE users 
+         SET username = ?, 
+             name = ?,
+             password = ?,
+             phone = ?,
+             type = ?
+         WHERE id = ?`,
         [username, name, password, phone, type, id],
+        function (err) {
+          if (err) {
+            if (
+              err.code === "SQLITE_CONSTRAINT" &&
+              err.message.includes("UNIQUE constraint failed")
+            ) {
+              reject(
+                new Error(
+                  "Username already exists. Please choose another username."
+                )
+              );
+            } else {
+              reject(err);
+            }
+          } else {
+            resolve(this.changes);
+          }
+        }
+      );
+    });
+  },
+
+  async updateLastLogin(id) {
+    const db = getDatabase();
+    return new Promise((resolve, reject) => {
+      db.run(
+        `UPDATE users 
+         SET last_login = DATETIME('now')
+         WHERE id = ?`,
+        [id],
         function (err) {
           if (err) reject(err);
           resolve(this.changes);
@@ -67,4 +144,56 @@ export const userOperations = {
       });
     });
   },
+
+  async getUsersByType(type) {
+    const db = getDatabase();
+    return new Promise((resolve, reject) => {
+      db.all(
+        `SELECT 
+          id,
+          username,
+          name,
+          phone,
+          type,
+          created_at,
+          last_login
+        FROM users 
+        WHERE type = ?
+        ORDER BY created_at DESC`,
+        [type],
+        (err, rows) => {
+          if (err) reject(err);
+          resolve(rows);
+        }
+      );
+    });
+  },
+
+  async validateUser(username, password) {
+    const db = getDatabase();
+    return new Promise((resolve, reject) => {
+      db.get(
+        `SELECT 
+          id,
+          username,
+          name,
+          type,
+          phone
+        FROM users 
+        WHERE username = ? AND password = ?`,
+        [username, password],
+        (err, row) => {
+          if (err) reject(err);
+          if (row) {
+            // Update last login time if user is found
+            this.updateLastLogin(row.id)
+              .then(() => resolve(row))
+              .catch(reject);
+          } else {
+            resolve(null);
+          }
+        }
+      );
+    });
+  }
 };

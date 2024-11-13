@@ -2,26 +2,37 @@ import { useState, useEffect, useRef } from "react";
 import { useProducts } from "../hooks/useDatabase";
 
 const InventoryManagement = () => {
-  const { products, addProduct, updateProduct, deleteProduct } = useProducts(
-    []
-  );
-  const [inputValue, setInputValue] = useState("");
+  const { 
+    products, 
+    loading, 
+    error, 
+    addProduct, 
+    updateProduct, 
+    deleteProduct,
+    getLowStockProducts 
+  } = useProducts();
+
   const [productList, setProductList] = useState(products);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredProducts, setFilteredProducts] = useState(products);
 
   // Form state
-  const [productName, setProductName] = useState("");
-  const [productPrice, setProductPrice] = useState("");
-  const [productQuantity, setProductQuantity] = useState("");
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [productForm, setProductForm] = useState({
+    name: "",
+    category: "",
+    base_price: "",
+    quantity: "",
+    reorder_point: "5",
+    picture: null
+  });
   const [imagePreview, setImagePreview] = useState("/api/placeholder/150/150");
+  const [inputValue, setInputValue] = useState("");
 
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    setProductList([...products]);
+    setProductList(products);
     setFilteredProducts(
       products.filter((product) =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -33,15 +44,21 @@ const InventoryManagement = () => {
     const { name, value } = e.target;
     if (selectedProduct) {
       setSelectedProduct({ ...selectedProduct, [name]: value });
+    } else {
+      setProductForm({ ...productForm, [name]: value });
     }
   };
 
   const clearFields = () => {
     setSelectedProduct(null);
-    setProductName("");
-    setProductPrice("");
-    setProductQuantity("");
-    setSelectedImage(null);
+    setProductForm({
+      name: "",
+      category: "",
+      base_price: "",
+      quantity: "",
+      reorder_point: "5",
+      picture: null
+    });
     setImagePreview("/api/placeholder/150/150");
     setInputValue("");
     if (fileInputRef.current) {
@@ -49,45 +66,63 @@ const InventoryManagement = () => {
     }
   };
 
-  const handleFileSelect = (e) => {
+  const handleFileSelect = async (e) => {
     const file = e.target.files[0];
     setInputValue(e.target.value);
+    
     if (file) {
-      setSelectedImage(file);
-      const previewUrl = URL.createObjectURL(file);
-      setImagePreview(previewUrl);
+      try {
+        // Convert file to binary data
+        const buffer = await file.arrayBuffer();
+        const binary = new Uint8Array(buffer);
+        
+        // Create preview URL for display
+        const previewUrl = URL.createObjectURL(file);
+        setImagePreview(previewUrl);
 
-      if (selectedProduct) {
-        setSelectedProduct({
-          ...selectedProduct,
-          picture: previewUrl,
-          imageFile: file,
-        });
+        if (selectedProduct) {
+          setSelectedProduct({
+            ...selectedProduct,
+            picture: binary // Store binary data
+          });
+        } else {
+          setProductForm({
+            ...productForm,
+            picture: binary // Store binary data
+          });
+        }
+      } catch (error) {
+        console.error("Error processing image:", error);
+        alert("Failed to process image. Please try again.");
       }
     }
   };
 
-  const handlePictureClick = () => {
-    fileInputRef.current?.click();
+  const renderProductImage = (binaryData) => {
+    if (!binaryData) return "/api/placeholder/150/150";
+    
+    try {
+      // Convert binary data to base64
+      const base64String = btoa(
+        String.fromCharCode.apply(null, binaryData)
+      );
+      return `data:image/jpeg;base64,${base64String}`;
+    } catch (error) {
+      console.error("Error rendering image:", error);
+      return "/api/placeholder/150/150";
+    }
   };
 
   const handleAddProduct = async () => {
     try {
-      const newProduct = {
-        name: productName,
-        picture: imagePreview,
-        price: parseFloat(productPrice) || 0,
-        quantity: parseInt(productQuantity) || 0,
-        imageFile: selectedImage,
-      };
-
-      await addProduct(
-        newProduct.name,
-        newProduct.quantity,
-        newProduct.price,
-        newProduct.picture
-      );
-      setProductList([...productList, newProduct]);
+      await addProduct({
+        name: productForm.name,
+        category: productForm.category,
+        quantity: parseInt(productForm.quantity) || 0,
+        base_price: parseFloat(productForm.base_price) || 0,
+        reorder_point: parseInt(productForm.reorder_point) || 5,
+        picture: productForm.picture // Binary data
+      });
       clearFields();
     } catch (error) {
       console.error("Error adding product:", error);
@@ -98,13 +133,15 @@ const InventoryManagement = () => {
   const handleUpdateProduct = async () => {
     if (selectedProduct) {
       try {
-        await updateProduct(
-          selectedProduct.id,
-          selectedProduct.name,
-          selectedProduct.quantity,
-          selectedProduct.price,
-          selectedImage
-        );
+        await updateProduct({
+          id: selectedProduct.id,
+          name: selectedProduct.name,
+          category: selectedProduct.category,
+          quantity: parseInt(selectedProduct.quantity) || 0,
+          base_price: parseFloat(selectedProduct.base_price) || 0,
+          reorder_point: parseInt(selectedProduct.reorder_point) || 5,
+          picture: selectedProduct.picture // Binary data
+        });
         clearFields();
       } catch (error) {
         console.error("Error updating product:", error);
@@ -150,12 +187,14 @@ const InventoryManagement = () => {
     <div className="max-w-7xl mx-auto p-5 flex gap-5 font-sans">
       {/* Left Panel */}
       <div className="w-[400px] flex flex-col">
-        <h2 className="text-xl font-bold mb-4">Product Details</h2>
+        {error && <div className="text-red-500 mb-4">{error}</div>}
         
         {/* Image Preview */}
         <div className="w-[150px] h-[150px] border border-gray-300 flex justify-center items-center mb-4 overflow-hidden">
           <img
-            src={selectedProduct ? selectedProduct.picture : imagePreview}
+            src={selectedProduct 
+              ? renderProductImage(selectedProduct.picture) 
+              : imagePreview}
             alt="Product preview"
             className="w-full h-full object-cover"
           />
@@ -173,7 +212,7 @@ const InventoryManagement = () => {
         
         {/* Image Upload Button */}
         <button 
-          onClick={handlePictureClick}
+          onClick={() => fileInputRef.current?.click()}
           className="bg-blue-600 text-white px-5 py-2.5 rounded mb-4 hover:bg-blue-700 transition-colors"
         >
           {selectedProduct ? "Update Picture" : "Select Picture"}
@@ -184,24 +223,40 @@ const InventoryManagement = () => {
           type="text"
           name="name"
           placeholder="Product Name"
-          value={selectedProduct ? selectedProduct.name || "" : productName}
-          onChange={selectedProduct ? handleInputChange : (e) => setProductName(e.target.value)}
+          value={selectedProduct ? selectedProduct.name : productForm.name}
+          onChange={handleInputChange}
+          className="w-full p-2.5 mb-3 border border-gray-300 rounded"
+        />
+        <input
+          type="text"
+          name="category"
+          placeholder="Category"
+          value={selectedProduct ? selectedProduct.category : productForm.category}
+          onChange={handleInputChange}
           className="w-full p-2.5 mb-3 border border-gray-300 rounded"
         />
         <input
           type="number"
-          name="price"
-          placeholder="Price"
-          value={selectedProduct ? selectedProduct.price || "" : productPrice}
-          onChange={selectedProduct ? handleInputChange : (e) => setProductPrice(e.target.value)}
+          name="base_price"
+          placeholder="Base Price"
+          value={selectedProduct ? selectedProduct.base_price : productForm.base_price}
+          onChange={handleInputChange}
           className="w-full p-2.5 mb-3 border border-gray-300 rounded"
         />
         <input
           type="number"
           name="quantity"
           placeholder="Quantity"
-          value={selectedProduct ? selectedProduct.quantity || "" : productQuantity}
-          onChange={selectedProduct ? handleInputChange : (e) => setProductQuantity(e.target.value)}
+          value={selectedProduct ? selectedProduct.quantity : productForm.quantity}
+          onChange={handleInputChange}
+          className="w-full p-2.5 mb-3 border border-gray-300 rounded"
+        />
+        <input
+          type="number"
+          name="reorder_point"
+          placeholder="Reorder Point"
+          value={selectedProduct ? selectedProduct.reorder_point : productForm.reorder_point}
+          onChange={handleInputChange}
           className="w-full p-2.5 mb-3 border border-gray-300 rounded"
         />
 
@@ -284,11 +339,30 @@ const InventoryManagement = () => {
             <div
               key={index}
               onClick={() => setSelectedProduct(product)}
-              className="p-4 border-b border-gray-200 hover:bg-gray-50 cursor-pointer"
+              className="p-4 border-b border-gray-200 hover:bg-gray-50 cursor-pointer flex items-center gap-4"
             >
-              <h4 className="font-bold">{product.name}</h4>
-              <p>Price: ₵{product.price}</p>
-              <p>Quantity: {product.quantity}</p>
+              {/* Product Image Thumbnail */}
+              <div className="w-12 h-12 border border-gray-200 rounded overflow-hidden">
+                <img
+                  src={renderProductImage(product.picture)}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              
+              {/* Product Details */}
+              <div>
+                <h4 className="font-bold">{product.name}</h4>
+                <p>Price: ₵{product.base_price}</p>
+                <p>Quantity: {product.quantity}</p>
+                <p className={`text-sm ${
+                  product.quantity <= product.reorder_point 
+                    ? 'text-red-500' 
+                    : 'text-green-500'
+                }`}>
+                  Status: {product.status}
+                </p>
+              </div>
             </div>
           ))}
         </div>

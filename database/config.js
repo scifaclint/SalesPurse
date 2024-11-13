@@ -31,52 +31,106 @@ async function createTables() {
     db.serialize(() => {
       // Users table
       db.run(`CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT NOT NULL UNIQUE,
-                name TEXT NOT NULL,
-                password TEXT NOT NULL,
-                phone TEXT NOT NULL,
-                type TEXT NOT NULL
-            )`);
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL UNIQUE,
+        name TEXT NOT NULL,
+        password TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        type TEXT NOT NULL CHECK (type IN ('admin', 'worker')),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        last_login DATETIME
+      )`);
 
-      // Sales table
+      // Products table
+      db.run(`CREATE TABLE IF NOT EXISTS products (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE,
+        category TEXT,
+        quantity INTEGER DEFAULT 0,
+        base_price DECIMAL(10,2) NOT NULL,
+        status TEXT DEFAULT 'In Stock' CHECK (status IN ('In Stock', 'Low Stock', 'Out of Stock')),
+        reorder_point INTEGER DEFAULT 5,
+        picture BLOB,
+        last_updated DATETIME DEFAULT CURRENT_TIMESTAMP
+      )`);
+
+      // Sales table (completed sales only)
       db.run(`CREATE TABLE IF NOT EXISTS sales (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                customer_name TEXT NOT NULL,
-                phone TEXT,
-                payment_method TEXT,
-                product TEXT NOT NULL,
-                quantity INTEGER NOT NULL,
-                revenue FLOAT NOT NULL,
-                worker_id INTEGER NOT NULL,
-                worker_name TEXT NOT NULL,
-                status TEXT DEFAULT 'pending',
-                date DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (worker_id) REFERENCES users(id)
-            )`);
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        customer_name TEXT NOT NULL,
+        customer_phone TEXT,
+        total_amount DECIMAL(10,2) NOT NULL,
+        discount_percentage DECIMAL(5,2) DEFAULT 0,
+        payment_method TEXT CHECK (payment_method IN ('cash', 'card', 'mobile_money')),
+        worker_id INTEGER NOT NULL,
+        notes TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (worker_id) REFERENCES users(id)
+      )`);
 
-      // Products table with BLOB for picture
-      // Database table creation
-      db.run(
-        `CREATE TABLE IF NOT EXISTS products (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    quantity INTEGER DEFAULT 0,
-    price FLOAT,
-    picture BLOB
-  )`,
-        (err) => {
-          if (err) reject(err);
-          else resolve();
-        }
-      );
+      // Sale Items table
+      db.run(`CREATE TABLE IF NOT EXISTS sale_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sale_id INTEGER NOT NULL,
+        product_id INTEGER NOT NULL,
+        quantity INTEGER NOT NULL,
+        unit_price DECIMAL(10,2) NOT NULL,
+        FOREIGN KEY (sale_id) REFERENCES sales(id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products(id)
+      )`);
 
-      // After creating tables, add some initial sales data
-      db.run(`INSERT OR IGNORE INTO sales (product, quantity, revenue, customer_name, phone, payment_method) VALUES 
-        ('Widget A', 100, 5000, 'John Doe', '+233123456789', 'cash'),
-        ('Gadget B', 50, 7500, 'Jane Smith', '+233987654321', 'card'),
-        ('Doohickey C', 200, 10000, 'Bob Johnson', '+233456789123', 'cash'),
-        ('Thingamajig D', 75, 3750, 'Alice Brown', '+233789123456', 'mobile_money')`);
+      // Pending Sales table
+      db.run(`CREATE TABLE IF NOT EXISTS pending_sales (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        customer_name TEXT NOT NULL,
+        customer_phone TEXT,
+        total_amount DECIMAL(10,2) NOT NULL,
+        discount_percentage DECIMAL(5,2) DEFAULT 0,
+        worker_id INTEGER NOT NULL,
+        notes TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (worker_id) REFERENCES users(id)
+      )`);
+
+      // Pending Sale Items table
+      db.run(`CREATE TABLE IF NOT EXISTS pending_sale_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        pending_sale_id INTEGER NOT NULL,
+        product_id INTEGER NOT NULL,
+        quantity INTEGER NOT NULL,
+        unit_price DECIMAL(10,2) NOT NULL,
+        FOREIGN KEY (pending_sale_id) REFERENCES pending_sales(id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products(id)
+      )`);
+
+      // Daily Metrics table
+      db.run(`CREATE TABLE IF NOT EXISTS daily_metrics (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date DATE UNIQUE NOT NULL,
+        total_sales DECIMAL(10,2) DEFAULT 0,
+        total_items_sold INTEGER DEFAULT 0,
+        number_of_transactions INTEGER DEFAULT 0,
+        average_order_value DECIMAL(10,2) DEFAULT 0,
+        pending_orders INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )`);
+
+      // Stock Updates table
+      db.run(`CREATE TABLE IF NOT EXISTS stock_updates (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        product_id INTEGER NOT NULL,
+        previous_quantity INTEGER NOT NULL,
+        new_quantity INTEGER NOT NULL,
+        update_type TEXT CHECK (update_type IN ('restock', 'sale', 'adjustment', 'return')),
+        updated_by INTEGER NOT NULL,
+        notes TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (product_id) REFERENCES products(id),
+        FOREIGN KEY (updated_by) REFERENCES users(id)
+      )`, (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
     });
   });
 }

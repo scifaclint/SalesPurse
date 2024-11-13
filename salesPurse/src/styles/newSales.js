@@ -218,5 +218,83 @@ export const newSalesStyles = {
     cursor: 'pointer',
     fontSize: '14px',
     fontWeight: '500',
+  },
+
+  searchContainer: {
+    position: 'relative',
+    width: '100%',
+  },
+
+  searchInput: {
+    width: '100%',
+    height: '38px',
+    padding: '8px 12px',
+    borderRadius: '4px',
+    border: '1px solid #ddd',
+    fontSize: '14px',
+    transition: 'border-color 0.2s',
+    '&:focus': {
+      outline: 'none',
+      borderColor: '#3b82f6',
+      boxShadow: '0 0 0 2px rgba(59, 130, 246, 0.1)',
+    }
+  },
+
+  dropdown: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    maxHeight: '200px',
+    overflowY: 'auto',
+    backgroundColor: 'white',
+    border: '1px solid #ddd',
+    borderRadius: '4px',
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+    zIndex: 1000,
+    marginTop: '4px',
+  },
+
+  dropdownItem: {
+    padding: '10px 12px',
+    cursor: 'pointer',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottom: '1px solid #f0f0f0',
+    '&:last-child': {
+      borderBottom: 'none',
+    },
+    '&:hover': {
+      backgroundColor: '#f8fafc',
+    }
+  },
+
+  productInfo: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px',
+  },
+
+  productName: {
+    fontWeight: '500',
+    color: '#1f2937',
+  },
+
+  productStock: {
+    fontSize: '12px',
+    color: '#6b7280',
+  },
+
+  productPrice: {
+    fontWeight: '500',
+    color: '#059669',
+  },
+
+  noResults: {
+    padding: '12px',
+    textAlign: 'center',
+    color: '#6b7280',
+    fontSize: '14px',
   }
 };
