@@ -110,8 +110,9 @@ export const salesOperations = {
             discount_percentage,
             worker_id,
             notes,
-            created_at
-          ) VALUES (?, ?, ?, ?, ?, ?, DATETIME('now'))`,
+            created_at,
+            status
+          ) VALUES (?, ?, ?, ?, ?, ?, DATETIME('now'), 'pending')`,
           [customerName, customerPhone, totalAmount, discountPercentage, workerId, notes],
           function(err) {
             if (err) {

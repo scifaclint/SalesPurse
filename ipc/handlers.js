@@ -66,6 +66,8 @@ export const setupIpcHandlers = () => {
   });
 
   ipcMain.handle("add-pending-sale", async (event, saleData) => {
+    try {
+      const result = await salesOperations.addPendingSale(saleData);
     return await salesOperations.addPendingSale({
       customerName: saleData.customerName,
       customerPhone: saleData.customerPhone,

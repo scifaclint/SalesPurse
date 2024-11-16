@@ -102,21 +102,59 @@ export const useUsers = () => {
 
 export const useSales = () => {
   const [sales, setSales] = useState([]);
+  const [pendingSales, setPendingSales] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchSales = async () => {
+    try {
+      const data = await window.api.getSales();
+      setSales(data);
+    } catch (error) {
+      console.error("Error fetching sales:", error);
+    }
+  };
+
+  const fetchPendingSales = async () => {
+    try {
+      const data = await window.api.getPendingSales();
+      setPendingSales(data);
+    } catch (error) {
+      console.error("Error fetching pending sales:", error);
+    }
+  };
+
+  const addPendingSale = async (saleData) => {
+    try {
+      const result = await window.api.addPendingSale(saleData);
+      if (result) {
+        await fetchPendingSales();
+        return { success: true, id: result };
+      }
+      return { success: false, message: 'Failed to add pending sale' };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  };
 
   useEffect(() => {
-    const fetchSales = async () => {
-      try {
-        const data = await window.api.getSales();
-        setSales(data);
-      } catch (error) {
-        console.error("Error fetching sales:", error);
-      }
+    const fetchData = async () => {
+      setLoading(true);
+      await Promise.all([fetchSales(), fetchPendingSales()]);
+      setLoading(false);
     };
-
-    fetchSales();
+    fetchData();
   }, []);
 
-  return { sales };
+  return {
+    sales,
+    pendingSales,
+    loading,
+    error,
+    addPendingSale,
+    fetchPendingSales,
+    fetchSales
+  };
 };
 
 export const useProducts = () => {
