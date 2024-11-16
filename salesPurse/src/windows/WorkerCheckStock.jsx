@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { FiSearch, FiPackage, FiAlertCircle } from "react-icons/fi";
-import NavigationTabWorker from "../navigation/NavigationTabsWorke";
 import { useProducts } from "../hooks/useDatabase";
 import { styled } from "../styles/mainWorkerSection";
-
+import NavigationTabWorker from "../navigation/NavigationTabsWorke";
 const WorkerCheckStock = () => {
   const { products, loading, error } = useProducts();
   const [searchQuery, setSearchQuery] = useState("");
@@ -13,119 +12,88 @@ const WorkerCheckStock = () => {
     lowStock: [],
     outOfStock: []
   });
-  const [searchTimeout, setSearchTimeout] = useState(null);
+  const [filteredItems, setFilteredItems] = useState([]);
 
+  // Process products data when it changes
   useEffect(() => {
-    const fetchStockData = async () => {
-      try {
-        // Fetch products from database
-        const processedItems = products.map(product => ({
-          id: product.id,
-          name: product.name,
-          quantity: product.quantity,
-          status: getProductStatus(product),
-          lastUpdated: formatDate(product.last_updated),
-          category: product.category,
-          reorder_point: product.reorder_point
-        }));
+    if (products) {
+      const processedItems = products.map(product => ({
+        id: product.id,
+        name: product.name,
+        category: product.category || 'Uncategorized',
+        quantity: parseInt(product.quantity) || 0,
+        status: product.status || getStockStatus(product.quantity, product.reorder_point),
+        lastUpdated: formatDate(product.last_updated)
+      }));
 
-        setStockData({
-          items: processedItems,
-          lowStock: processedItems.filter(item => 
-            item.quantity > 0 && item.quantity <= item.reorder_point
-          ),
-          outOfStock: processedItems.filter(item => item.quantity === 0)
-        });
+      const lowStockItems = processedItems.filter(
+        item => item.status === 'Low Stock'
+      );
 
-      } catch (err) {
-        console.error("Failed to fetch stock data:", err);
-      }
-    };
+      const outOfStockItems = processedItems.filter(
+        item => item.quantity <= 0
+      );
 
-    fetchStockData();
+      setStockData({
+        items: processedItems,
+        lowStock: lowStockItems,
+        outOfStock: outOfStockItems
+      });
+      setFilteredItems(processedItems);
+    }
   }, [products]);
 
-  // Helper function to get product status
-  const getProductStatus = (product) => {
-    if (product.quantity === 0) return "Out of Stock";
-    if (product.quantity <= product.reorder_point) return "Low Stock";
-    return "In Stock";
+  const getStockStatus = (quantity, reorderPoint) => {
+    if (quantity <= 0) return 'Out of Stock';
+    if (quantity <= reorderPoint) return 'Low Stock';
+    return 'In Stock';
   };
 
-  // Helper function to format date
   const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-GB', {
       day: '2-digit',
       month: '2-digit',
-      year: 'numeric'
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
-  // Handle search with debounce
   const handleSearch = (value) => {
     setSearchQuery(value);
     
-    // Clear previous timeout
-    if (searchTimeout) {
-      clearTimeout(searchTimeout);
+    if (!value.trim()) {
+      setFilteredItems(stockData.items);
+      setSearchError("");
+      return;
     }
 
-    // Set new timeout
-    const timeout = setTimeout(() => {
-      const matchingProducts = products.filter(product =>
-        product.name.toLowerCase().includes(value.toLowerCase()) ||
-        product.category.toLowerCase().includes(value.toLowerCase())
-      );
+    const matchingProducts = stockData.items.filter(product =>
+      product.name.toLowerCase().includes(value.toLowerCase()) ||
+      product.category.toLowerCase().includes(value.toLowerCase())
+    );
 
-      if (value && matchingProducts.length === 0) {
-        setSearchError("No products found matching your search");
-      } else {
-        setSearchError("");
-      }
-    }, 300); // 300ms delay
+    if (matchingProducts.length === 0) {
+      setSearchError("No products found matching your search.");
+    } else {
+      setSearchError("");
+    }
 
-    setSearchTimeout(timeout);
+    setFilteredItems(matchingProducts);
   };
 
-  // Get filtered items
-  const filteredItems = products.filter(product =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
-    <div style={styled.container} className="bg-gray-100">
+    <div className="min-h-screen bg-gray-100">
       <NavigationTabWorker />
-      
-      <main style={styled.mainWrapper} className="pt-6">
-        <div className="space-y-6 max-w-[1400px] mx-auto">
-          {/* Header Section */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <h1 className="text-2xl font-semibold text-gray-800">
-              Stock Inventory
-            </h1>
-            
-            <div className="relative w-full md:w-96">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FiSearch className="text-gray-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search by product name or category..."
-                value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
-                className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
-                  ${searchError ? 'border-red-500 bg-red-50' : 'border-gray-300'}
-                  transition-colors duration-200`}
-              />
-              {searchError && (
-                <p className="absolute text-sm text-red-500 mt-1">{searchError}</p>
-              )}
-            </div>
-          </div>
-
+      <main className="p-6">
+        <div className="max-w-7xl mx-auto">
           {/* Stats Cards */}
           <div style={styled.dashboardGrid}>
+            {/* Total Items Card */}
             <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
               <div className="flex items-center">
                 <div className="p-3 bg-indigo-100 rounded-lg">
@@ -139,7 +107,8 @@ const WorkerCheckStock = () => {
                 </div>
               </div>
             </div>
-            
+
+            {/* Low Stock Items Card */}
             <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
               <div className="flex items-center">
                 <div className="p-3 bg-red-100 rounded-lg">
@@ -154,6 +123,7 @@ const WorkerCheckStock = () => {
               </div>
             </div>
 
+            {/* Out of Stock Items Card */}
             <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
               <div className="flex items-center">
                 <div className="p-3 bg-amber-100 rounded-lg">
@@ -167,6 +137,20 @@ const WorkerCheckStock = () => {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Search Bar */}
+          <div className="mt-6 mb-4">
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded-lg"
+            />
+            {searchError && (
+              <p className="mt-2 text-red-500 text-sm">{searchError}</p>
+            )}
           </div>
 
           {/* Products Table */}
@@ -198,8 +182,8 @@ const WorkerCheckStock = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.name}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.category}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.quantity}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <span className={`${styles[`status${item.status.replace(/\s+/g, '')}`]}`}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`${getStatusStyle(item.status)}`}>
                           {item.status}
                         </span>
                       </td>
@@ -214,6 +198,21 @@ const WorkerCheckStock = () => {
       </main>
     </div>
   );
+};
+
+// Helper function for status styles
+const getStatusStyle = (status) => {
+  const baseStyle = "px-2 py-1 text-xs font-medium rounded-full";
+  switch (status) {
+    case 'In Stock':
+      return `${baseStyle} bg-green-100 text-green-800`;
+    case 'Low Stock':
+      return `${baseStyle} bg-yellow-100 text-yellow-800`;
+    case 'Out of Stock':
+      return `${baseStyle} bg-red-100 text-red-800`;
+    default:
+      return `${baseStyle} bg-gray-100 text-gray-800`;
+  }
 };
 
 export default WorkerCheckStock;

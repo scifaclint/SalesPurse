@@ -31,6 +31,11 @@ const InventoryManagement = () => {
 
   const fileInputRef = useRef(null);
 
+  const [deleteConfirmation, setDeleteConfirmation] = useState({
+    isOpen: false,
+    productId: null
+  });
+
   useEffect(() => {
     setProductList(products);
     setFilteredProducts(
@@ -158,15 +163,23 @@ const InventoryManagement = () => {
     }
   };
 
-  const handleDeleteProduct = async () => {
+  const handleDeleteClick = () => {
     if (selectedProduct) {
-      try {
-        await deleteProduct(selectedProduct.id);
-        clearFields();
-      } catch (error) {
-        console.error("Error deleting product:", error);
-        alert("Failed to delete product. Please try again.");
-      }
+      setDeleteConfirmation({
+        isOpen: true,
+        productId: selectedProduct.id
+      });
+    }
+  };
+
+  const handleDeleteProduct = async () => {
+    try {
+      await deleteProduct(deleteConfirmation.productId);
+      setDeleteConfirmation({ isOpen: false, productId: null });
+      clearFields();
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      alert("Failed to delete product. Please try again.");
     }
   };
 
@@ -179,16 +192,19 @@ const InventoryManagement = () => {
   };
 
   const totalItems = productList.reduce(
-    (sum, product) => sum + product.quantity,
+    (sum, product) => sum + (parseInt(product.quantity) || 0),
     0
   );
+
   const totalValue = productList.reduce(
-    (sum, product) => sum + product.price * product.quantity,
+    (sum, product) => sum + ((parseFloat(product.base_price) || 0) * (parseInt(product.quantity) || 0)),
     0
   );
-  const averagePrice = totalValue / totalItems || 0;
+
+  const averagePrice = totalItems > 0 ? totalValue / totalItems : 0;
+
   const lowStockItems = productList.filter(
-    (product) => product.quantity < 5
+    (product) => (parseInt(product.quantity) || 0) <= (parseInt(product.reorder_point) || 5)
   ).length;
 
   return (
@@ -291,7 +307,7 @@ const InventoryManagement = () => {
             Update
           </button>
           <button
-            onClick={handleDeleteProduct}
+            onClick={handleDeleteClick}
             disabled={!selectedProduct}
             className={`px-5 py-2.5 rounded transition-colors
               ${!selectedProduct 
@@ -312,9 +328,15 @@ const InventoryManagement = () => {
         <div className="bg-gray-50 p-4 rounded">
           <h3 className="font-bold mb-3">Inventory Summary</h3>
           <div className="space-y-2">
-            <div><strong>Total Items:</strong> {totalItems}</div>
-            <div><strong>Total Inventory Value:</strong> ₵{totalValue.toFixed(2)}</div>
-            <div><strong>Average Price Per Item:</strong> ₵{averagePrice.toFixed(2)}</div>
+            <div><strong>Total Items:</strong> {totalItems.toLocaleString()}</div>
+            <div>
+              <strong>Total Inventory Value:</strong> 
+              ₵{totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <div>
+              <strong>Average Price Per Item:</strong> 
+              ₵{averagePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
             <div><strong>Low Stock Items:</strong> {lowStockItems}</div>
           </div>
         </div>
@@ -375,6 +397,32 @@ const InventoryManagement = () => {
           ))}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmation.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Confirm Delete</h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete this product? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors"
+                onClick={() => setDeleteConfirmation({ isOpen: false, productId: null })}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                onClick={handleDeleteProduct}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
