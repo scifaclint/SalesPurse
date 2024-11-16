@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { FiSearch, FiPackage, FiAlertCircle } from "react-icons/fi";
 import { useProducts } from "../hooks/useDatabase";
-import { styled } from "../styles/mainWorkerSection";
 import NavigationTabWorker from "../navigation/NavigationTabsWorke";
 const WorkerCheckStock = () => {
   const { products, loading, error } = useProducts();
@@ -87,12 +86,11 @@ const WorkerCheckStock = () => {
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-gray-100 relative overflow-hidden">
       <NavigationTabWorker />
-      <main className="p-6">
+      <main className="flex-1 p-6 overflow-y-auto max-w-[1400px] mx-auto w-full ml-64 px-8">
         <div className="max-w-7xl mx-auto">
-          {/* Stats Cards */}
-          <div style={styled.dashboardGrid}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
             {/* Total Items Card */}
             <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
               <div className="flex items-center">
@@ -146,7 +144,7 @@ const WorkerCheckStock = () => {
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-lg"
+              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
             {searchError && (
               <p className="mt-2 text-red-500 text-sm">{searchError}</p>
@@ -178,12 +176,12 @@ const WorkerCheckStock = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredItems.map((item) => (
-                    <tr key={item.id}>
+                    <tr key={item.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.name}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.category}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.quantity}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`${getStatusStyle(item.status)}`}>
+                        <span className={getStatusStyle(item.status)}>
                           {item.status}
                         </span>
                       </td>
@@ -200,9 +198,9 @@ const WorkerCheckStock = () => {
   );
 };
 
-// Helper function for status styles
+// Update status style function to return Tailwind classes
 const getStatusStyle = (status) => {
-  const baseStyle = "px-2 py-1 text-xs font-medium rounded-full";
+  const baseStyle = "px-3 py-1 text-xs font-semibold rounded-full";
   switch (status) {
     case 'In Stock':
       return `${baseStyle} bg-green-100 text-green-800`;
