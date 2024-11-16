@@ -20,10 +20,11 @@ const NewSaleContent = () => {
 
   // Filter products based on search term
   const getFilteredProducts = (searchTerm) => {
-    if (!searchTerm) return [];
-    return products.filter(product => 
+    if (!searchTerm.trim()) return [];
+    const filtered = products.filter(product => 
       product.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
+    return filtered;
   };
 
   // Check if product details are valid
@@ -43,23 +44,22 @@ const NewSaleContent = () => {
     if (field === "name") {
       updatedSearches[index] = value;
       setProductSearches(updatedSearches);
+      setDropdownVisible(prev => prev.map((v, i) => i === index ? true : v));
       
-      // If exact match found, select that product
-      const selectedProduct = products.find(p => 
-        p.name.toLowerCase() === value.toLowerCase()
-      );
-      
-      if (selectedProduct) {
+      // Clear price if product name is cleared
+      if (!value.trim()) {
         updatedProducts[index] = {
           ...updatedProducts[index],
-          name: selectedProduct.name,
-          price: selectedProduct.price
+          name: "",
+          price: 0,
+          maxQuantity: 0
         };
         setFormData({ ...formData, products: updatedProducts });
-        setDropdownVisible(prev => prev.map((v, i) => i === index ? false : v));
       }
-    } else {
-      updatedProducts[index][field] = value;
+    } else if (field === "quantity") {
+      const maxQty = updatedProducts[index].maxQuantity || 0;
+      const newQty = Math.min(Math.max(1, parseInt(value) || 0), maxQty);
+      updatedProducts[index].quantity = newQty;
       setFormData({ ...formData, products: updatedProducts });
     }
   };
@@ -72,7 +72,8 @@ const NewSaleContent = () => {
     updatedProducts[index] = {
       ...updatedProducts[index],
       name: product.name,
-      price: product.price
+      price: product.base_price,
+      maxQuantity: product.quantity // Add this to track available stock
     };
     updatedSearches[index] = product.name;
     
@@ -322,7 +323,7 @@ const NewSaleContent = () => {
 
           {formData.products.map((product, index) => (
             <div key={index} className="grid grid-cols-[2fr,1fr,1fr,auto] gap-4 items-end p-4 bg-gray-50 rounded-lg mb-3">
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 relative">
                 <label className="text-sm font-medium text-gray-700">Product</label>
                 <div className="relative">
                   <input
@@ -331,26 +332,38 @@ const NewSaleContent = () => {
                     onChange={(e) => handleProductChange(index, "name", e.target.value)}
                     onFocus={() => setDropdownVisible(prev => prev.map((v, i) => i === index ? true : v))}
                     className="w-full p-2.5 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="Search through available products..."
+                    placeholder="Type to search products..."
                   />
-                  {dropdownVisible[index] && productSearches[index] && (
-                    <div className="absolute top-full left-0 right-0 mt-1 max-h-[200px] overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                      {getFilteredProducts(productSearches[index]).map(product => (
-                        <div
-                          key={product.id}
-                          className="flex justify-between items-center p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                          onClick={() => handleProductSelect(index, product)}
-                        >
-                          <div className="flex flex-col">
-                            <span className="font-medium text-gray-800">{product.name}</span>
-                            <span className="text-xs text-gray-500">Stock: {product.stock}</span>
-                          </div>
-                          <span className="font-medium text-green-600">GH₵{product.price}</span>
+                  
+                  {/* Dropdown for product suggestions */}
+                  {productSearches[index] && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                      {getFilteredProducts(productSearches[index]).length > 0 ? (
+                        <div className="max-h-48 overflow-y-auto">
+                          {getFilteredProducts(productSearches[index]).map(product => (
+                            <div
+                              key={product.id}
+                              onClick={() => handleProductSelect(index, product)}
+                              className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                            >
+                              <div className="flex justify-between items-center">
+                                <div>
+                                  <p className="font-medium text-gray-800">{product.name}</p>
+                                  <p className="text-sm text-gray-500">
+                                    Stock: {product.quantity} | Category: {product.category || 'N/A'}
+                                  </p>
+                                </div>
+                                <span className="font-medium text-green-600">
+                                  ₵{parseFloat(product.base_price).toFixed(2)}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                      {getFilteredProducts(productSearches[index]).length === 0 && (
-                        <div className="p-3 text-center text-gray-500 text-sm">
-                          No products found
+                      ) : (
+                        <div className="p-3 text-center">
+                          <p className="text-red-500 text-sm">Product not available in inventory</p>
+                          <p className="text-gray-400 text-xs mt-1">Please check the product name or add it to inventory first</p>
                         </div>
                       )}
                     </div>
