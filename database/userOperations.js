@@ -1,39 +1,29 @@
 import { getDatabase } from "./config.js";
 
 export const userOperations = {
-  async addUser(username, name, password, phone, type) {
+  async addUser(userData) {
+    
     const db = getDatabase();
     return new Promise((resolve, reject) => {
-      db.run(
-        `INSERT INTO users (
-          username, 
-          name, 
-          password, 
-          phone, 
-          type, 
-          created_at, 
-          last_login
-        ) VALUES (?, ?, ?, ?, ?, DATETIME('now'), NULL)`,
-        [username, name, password, phone, type],
-        function (err) {
-          if (err) {
-            if (
-              err.code === "SQLITE_CONSTRAINT" &&
-              err.message.includes("UNIQUE constraint failed")
-            ) {
-              reject(
-                new Error(
-                  "Username already exists. Please choose another username."
-                )
-              );
-            } else {
-              reject(err);
-            }
-          } else {
-            resolve(this.lastID);
-          }
+      const sql = `
+        INSERT INTO users (username, name, password, phone, type, created_at)
+        VALUES (?, ?, ?, ?, ?, datetime('now'))
+      `;
+      const params = [
+        userData.username,
+        userData.name,
+        userData.password,
+        userData.phone,
+        userData.type || 'worker'
+      ];
+      db.run(sql, params, function(err) {
+        if (err) {
+          console.error("Database error:", err);
+          reject(err);
+        } else {
+          resolve({ userId: this.lastID });
         }
-      );
+      });
     });
   },
 
@@ -85,62 +75,61 @@ export const userOperations = {
     });
   },
 
-  async updateUser(id, username, name, password, phone, type) {
+  async updateUser(id, updates) {
     const db = getDatabase();
     return new Promise((resolve, reject) => {
-      db.run(
-        `UPDATE users 
-         SET username = ?, 
-             name = ?,
-             password = ?,
-             phone = ?,
-             type = ?
-         WHERE id = ?`,
-        [username, name, password, phone, type, id],
-        function (err) {
-          if (err) {
-            if (
-              err.code === "SQLITE_CONSTRAINT" &&
-              err.message.includes("UNIQUE constraint failed")
-            ) {
-              reject(
-                new Error(
-                  "Username already exists. Please choose another username."
-                )
-              );
-            } else {
-              reject(err);
-            }
-          } else {
-            resolve(this.changes);
-          }
+      const sql = `
+        UPDATE users SET username = ?, name = ?, password = ?, phone = ?, type = ?
+        WHERE id = ?
+      `;
+      const params = [
+        updates.username,
+        updates.name,
+        updates.password,
+        updates.phone,
+        updates.type,
+        id
+      ];
+      db.run(sql, params, function(err) {
+        if (err) {
+          console.error("Update error:", err);
+          reject(err);
+        } else {
+          resolve({ changes: this.changes });
         }
-      );
+      });
     });
   },
 
   async updateLastLogin(id) {
     const db = getDatabase();
     return new Promise((resolve, reject) => {
-      db.run(
-        `UPDATE users 
-         SET last_login = DATETIME('now')
-         WHERE id = ?`,
-        [id],
-        function (err) {
-          if (err) reject(err);
-          resolve(this.changes);
+      const sql = `UPDATE users SET last_login = datetime('now') WHERE id = ?`;
+      db.run(sql, [id], function(err) {
+        if (err) {
+          console.error("Update last login error:", err);
+          reject(err);
+        } else {
+          resolve({ 
+            success: true, 
+            changes: this.changes 
+          });
         }
-      );
+      });
     });
   },
 
   async deleteUser(id) {
     const db = getDatabase();
     return new Promise((resolve, reject) => {
-      db.run("DELETE FROM users WHERE id = ?", [id], function (err) {
-        if (err) reject(err);
-        resolve(this.changes);
+      const sql = `DELETE FROM users WHERE id = ?`;
+      db.run(sql, [id], function(err) {
+        if (err) {
+          console.error("Delete error:", err);
+          reject(err);
+        } else {
+          resolve();
+        }
       });
     });
   },

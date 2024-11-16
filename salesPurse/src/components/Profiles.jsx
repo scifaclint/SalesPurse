@@ -17,6 +17,11 @@ const UserAccountManagement = () => {
     type: "worker",
   });
 
+  const [deleteConfirmation, setDeleteConfirmation] = useState({
+    isOpen: false,
+    userId: null
+  });
+
   useEffect(() => {
     setFilteredUsers(
       users.filter(
@@ -30,62 +35,61 @@ const UserAccountManagement = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    if (selectedUser) {
-      setSelectedUser({ ...selectedUser, [name]: value });
+    
+    if (name === "type") {
+      if (selectedUser) {
+        setSelectedUser({ ...selectedUser, type: value });
+      } else {
+        setNewUser({ ...newUser, type: value });
+      }
     } else {
-      setNewUser({ ...newUser, [name]: value });
+      if (selectedUser) {
+        setSelectedUser({ ...selectedUser, [name]: value });
+      } else {
+        setNewUser({ ...newUser, [name]: value });
+      }
     }
   };
 
   const handleAddUser = async () => {
-    if (newUser.name && newUser.phone && newUser.username && newUser.password) {
-      try {
-        await addUser({
-          name: newUser.name,
-          phone: newUser.phone,
-          username: newUser.username,
-          password: newUser.password,
-          type: newUser.type,
-        });
-
-        setNewUser({
-          name: "",
-          phone: "",
-          username: "",
-          password: "",
-          type: "worker",
-        });
-        setIsAdding(false);
-      } catch (err) {
-        console.error("Failed to add user:", err);
-        alert(err.message || "Failed to add user. Please try again.");
+    try {
+      if (!newUser.username?.trim() || !newUser.name?.trim() || !newUser.password?.trim() || !newUser.phone?.trim()) {
+        alert("All fields are required");
+        return;
       }
-    } else {
-      alert("Please fill in all fields.");
+
+      console.log("Adding user with data:", newUser);
+
+      const result = await addUser(newUser);
+      if (result.success) {
+        setNewUser({ name: "", phone: "", username: "", password: "", type: "worker" });
+        setIsAdding(false);
+      }
+    } catch (err) {
+      console.error("Failed to add user:", err);
+      alert(err.message || "Failed to add user. Please try again.");
     }
   };
 
   const handleUpdateUser = async () => {
-    if (selectedUser) {
-      try {
-        await updateUser({
-          id: selectedUser.id,
-          name: selectedUser.name,
-          phone: selectedUser.phone,
-          username: selectedUser.username,
-          type: selectedUser.type,
-          // Only include password if it was changed
-          ...(selectedUser.password && { password: selectedUser.password }),
-        });
+    try {
+      if (!selectedUser) return;
+      const result = await updateUser(selectedUser.id, selectedUser);
+      if (result.success) {
         setSelectedUser(null);
-      } catch (err) {
-        console.error("Failed to update user:", err);
-        alert(err.message || "Failed to update user. Please try again.");
       }
+    } catch (err) {
+      console.error("Failed to update user:", err);
+      alert(err.message || "Failed to update user. Please try again.");
     }
   };
 
   const handleDeleteUser = async (id) => {
+    setDeleteConfirmation({
+      isOpen: false,
+      userId: null
+    });
+    
     try {
       await deleteUser(id);
       setSelectedUser(null);
@@ -93,6 +97,13 @@ const UserAccountManagement = () => {
       console.error("Failed to delete user:", err);
       alert(err.message || "Failed to delete user. Please try again.");
     }
+  };
+
+  const handleDeleteClick = (id) => {
+    setDeleteConfirmation({
+      isOpen: true,
+      userId: id
+    });
   };
 
   return (
@@ -175,7 +186,7 @@ const UserAccountManagement = () => {
                     />
                     <input
                       className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      type="phone"
+                      type="text"
                       name="phone"
                       placeholder="Phone"
                       value={newUser.phone}
@@ -199,7 +210,7 @@ const UserAccountManagement = () => {
                     />
                     <select
                       className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      name="userType"
+                      name="type"
                       value={newUser.type}
                       onChange={handleInputChange}
                     >
@@ -252,7 +263,7 @@ const UserAccountManagement = () => {
                     />
                     <select
                       className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      name="userType"
+                      name="type"
                       value={selectedUser.type}
                       onChange={handleInputChange}
                     >
@@ -268,7 +279,7 @@ const UserAccountManagement = () => {
                       </button>
                       <button
                         className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-                        onClick={() => handleDeleteUser(selectedUser.id)}
+                        onClick={() => handleDeleteClick(selectedUser.id)}
                       >
                         Delete User
                       </button>
@@ -284,6 +295,32 @@ const UserAccountManagement = () => {
             </div>
           </div>
         </>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmation.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Confirm Delete</h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete this user? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors"
+                onClick={() => setDeleteConfirmation({ isOpen: false, userId: null })}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                onClick={() => handleDeleteUser(deleteConfirmation.userId)}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

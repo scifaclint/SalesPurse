@@ -16,56 +16,62 @@ const SalesPulseLogin = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setError("");
 
-    // Only check for empty fields
     if (!username.trim() || !password.trim()) {
       alert("Please enter both username and password");
       return;
     }
     
-    // Find matching user
-    const matchedUser = users.find(user => 
-      username.trim() === user.username && 
-      password.trim() === user.password
-    );
+    try {
+      // Find matching user
+      const matchedUser = users.find(user => 
+        username.trim() === user.username && 
+        password.trim() === user.password
+      );
 
-    if (!matchedUser) {
-      alert("Invalid username or password");
-      setError("Invalid credentials");
-      return;
-    }
+      if (!matchedUser) {
+        alert("Invalid username or password");
+        setError("Invalid credentials");
+        return;
+      }
 
-    // Check if user type matches the toggle selection
-    if (isAdmin && matchedUser.type !== "admin") {
-      alert("Access denied: This login is for administrators only");
-      setError("Invalid user type");
-      return;
-    }
+      // Check user type
+      if (isAdmin && matchedUser.type !== "admin") {
+        alert("Access denied: This login is for administrators only");
+        setError("Invalid user type");
+        return;
+      }
 
-    if (!isAdmin && matchedUser.type !== "worker") {
-      alert("Access denied: This login is for workers only");
-      setError("Invalid user type");
-      return;
-    }
+      if (!isAdmin && matchedUser.type !== "worker") {
+        alert("Access denied: This login is for workers only");
+        setError("Invalid user type");
+        return;
+      }
 
-    // If we get here, the user type matches the toggle
-    dispatch(
-      loginSuccess({
-        id: matchedUser.id,
-        name: matchedUser.name,
-        username: matchedUser.username,
-        type: matchedUser.type,
-        phone: matchedUser.phone
-      })
-    );
+     
 
-    // Navigate based on validated user type
-    if (matchedUser.type === "admin") {
-      navigate("/admin");
-    } else {
-      navigate("/worker");
+      // Dispatch login success
+      dispatch(
+        loginSuccess({
+          id: matchedUser.id,
+          name: matchedUser.name,
+          username: matchedUser.username,
+          type: matchedUser.type,
+          phone: matchedUser.phone
+        })
+      );
+
+      // Navigate based on user type
+      if (matchedUser.type === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/worker");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("An error occurred during login");
     }
   };
 

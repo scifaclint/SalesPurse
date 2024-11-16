@@ -115,7 +115,12 @@ const InventoryManagement = () => {
 
   const handleAddProduct = async () => {
     try {
-      await addProduct({
+      if (!productForm.name || !productForm.base_price) {
+        alert("Product name and base price are required");
+        return;
+      }
+
+      const result = await addProduct({
         name: productForm.name,
         category: productForm.category,
         quantity: parseInt(productForm.quantity) || 0,
@@ -123,10 +128,13 @@ const InventoryManagement = () => {
         reorder_point: parseInt(productForm.reorder_point) || 5,
         picture: productForm.picture // Binary data
       });
-      clearFields();
+
+      if (result) {
+        clearFields();
+      }
     } catch (error) {
       console.error("Error adding product:", error);
-      alert("Failed to add product. Please try again.");
+      alert(error.message || "Failed to add product. Please try again.");
     }
   };
 

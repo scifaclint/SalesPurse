@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld("api", {
   getUsers: () => ipcRenderer.invoke("get-users"),
   updateUser: (id, updates) => ipcRenderer.invoke("update-user", { id, updates }),
   deleteUser: (id) => ipcRenderer.invoke("delete-user", { id }),
+  updateLastLogin: (userId) => ipcRenderer.invoke("update-last-login", userId),
 
   // Sales operations
   addSale: (saleData) => ipcRenderer.invoke("add-sale", saleData),
@@ -22,8 +23,9 @@ contextBridge.exposeInMainWorld("api", {
   // Product operations
   getProducts: () => ipcRenderer.invoke("get-products"),
   addProduct: (productData) => ipcRenderer.invoke("add-product", productData),
-  updateProduct: (id, updates) => ipcRenderer.invoke("update-product", { id, updates }),
+  updateProduct: (productData) => ipcRenderer.invoke("update-product", productData),
   deleteProduct: (id) => ipcRenderer.invoke("delete-product", { id }),
+  getLowStockProducts: () => ipcRenderer.invoke("get-low-stock-products"),
 
   // Analytics operations
   getSalesWithRevenue: () => ipcRenderer.invoke("get-sales-with-revenue"),

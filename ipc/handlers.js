@@ -6,7 +6,13 @@ import { productOperations } from "../database/productOperations.js";
 export const setupIpcHandlers = () => {
   // User Handlers
   ipcMain.handle("add-user", async (event, userData) => {
-    return await userOperations.addUser(userData);
+    try {
+      const result = await userOperations.addUser(userData);
+      return { success: true, ...result };
+    } catch (error) {
+      console.error("Add user error:", error);
+      return { success: false, message: error.message };
+    }
   });
 
   ipcMain.handle("get-users", async () => {
@@ -14,11 +20,31 @@ export const setupIpcHandlers = () => {
   });
 
   ipcMain.handle("update-user", async (event, { id, updates }) => {
-    return await userOperations.updateUser(id, updates);
+    try {
+      const result = await userOperations.updateUser(id, updates);
+      return { success: true, ...result };
+    } catch (error) {
+      console.error("Update user error:", error);
+      return { success: false, message: error.message };
+    }
   });
-
+ ipcMain.handle("update-last-login", async (event, userId) => {
+   try {
+     const result = await userOperations.updateLastLogin(userId);
+     return { success: true, ...result };
+   } catch (error) {
+     console.error("Update last login error:", error);
+     return { success: false, message: error.message };
+   }
+ });
   ipcMain.handle("delete-user", async (event, { id }) => {
-    return await userOperations.deleteUser(id);
+    try {
+      await userOperations.deleteUser(id);
+      return { success: true };
+    } catch (error) {
+      console.error("Delete user error:", error);
+      return { success: false, message: error.message };
+    }
   });
 
   // Sales Handlers
@@ -81,15 +107,43 @@ export const setupIpcHandlers = () => {
   });
 
   ipcMain.handle("add-product", async (event, productData) => {
-    return await productOperations.addProduct(productData);
+    try {
+      const result = await productOperations.addProduct(productData);
+      return { success: true, result };
+    } catch (error) {
+      console.error("Add product error:", error);
+      return { success: false, message: error.message };
+    }
   });
 
-  ipcMain.handle("update-product", async (event, { id, updates }) => {
-    return await productOperations.updateProduct(id, updates);
+  ipcMain.handle("update-product", async (event, productData) => {
+    try {
+      const result = await productOperations.updateProduct(productData);
+      return { success: true, result };
+    } catch (error) {
+      console.error("Update product error:", error);
+      return { success: false, message: error.message };
+    }
   });
 
   ipcMain.handle("delete-product", async (event, { id }) => {
-    return await productOperations.deleteProduct(id);
+    try {
+      const result = await productOperations.deleteProduct(id);
+      return { success: true, result };
+    } catch (error) {
+      console.error("Delete product error:", error);
+      return { success: false, message: error.message };
+    }
+  });
+
+  ipcMain.handle("get-low-stock-products", async () => {
+    try {
+      const result = await productOperations.getLowStockProducts();
+      return { success: true, result };
+    } catch (error) {
+      console.error("Get low stock products error:", error);
+      return { success: false, message: error.message };
+    }
   });
 
   // Analytics Handlers
