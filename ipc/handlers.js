@@ -67,20 +67,23 @@ export const setupIpcHandlers = () => {
 
   ipcMain.handle("add-pending-sale", async (event, saleData) => {
     try {
-      const result = await salesOperations.addPendingSale(saleData);
-    return await salesOperations.addPendingSale({
-      customerName: saleData.customerName,
-      customerPhone: saleData.customerPhone,
-      totalAmount: saleData.totalAmount,
-      discountPercentage: saleData.discount,
-      workerId: saleData.created_by,
-      notes: saleData.message,
-      items: saleData.items.map(item => ({
-        productId: item.product_id,
-        quantity: item.quantity,
-        unitPrice: item.price
-      }))
-    });
+      return await salesOperations.addPendingSale({
+        customerName: saleData.customerName,
+        customerPhone: saleData.customerPhone,
+        totalAmount: saleData.totalAmount,
+        discountPercentage: saleData.discount,
+        workerId: saleData.created_by,
+        notes: saleData.message,
+        items: saleData.items.map(item => ({
+          productId: item.product_id,
+          quantity: item.quantity,
+          unitPrice: item.price
+        }))
+      });
+    } catch (error) {
+      console.error("Add pending sale error:", error);
+      return { success: false, message: error.message };
+    }
   });
 
   ipcMain.handle("get-sales", async () => {

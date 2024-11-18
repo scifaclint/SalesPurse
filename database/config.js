@@ -12,15 +12,22 @@ let db;
 
 export function initializeDatabase() {
   return new Promise((resolve, reject) => {
-    db = new sq.Database(dbPath, (err) => {
+    db = new sq.Database(dbPath, async (err) => {
       if (err) {
         console.error("Database connection error:", err);
         reject(err);
-      } else {
-        console.log("Connected to SQLite database");
-        createTables()
-          .then(() => resolve(db))
-          .catch(reject);
+        return;
+      }
+      
+      console.log("Connected to SQLite database");
+      try {
+        await createTables();
+        await migrateDatabase();
+        await addDefaultAdmin();
+        resolve(db);
+      } catch (error) {
+        console.error("Database initialization error:", error);
+        reject(error);
       }
     });
   });
@@ -88,6 +95,7 @@ async function createTables() {
         discount_percentage DECIMAL(5,2) DEFAULT 0,
         worker_id INTEGER NOT NULL,
         notes TEXT,
+        status TEXT DEFAULT 'pending',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (worker_id) REFERENCES users(id)
       )`);
@@ -136,6 +144,9 @@ async function createTables() {
 }
 
 export function getDatabase() {
+  if (!db) {
+    throw new Error("Database not initialized");
+  }
   return db;
 }
 
@@ -151,3 +162,93 @@ export function closeDatabase() {
     }
   });
 }
+
+async function addDefaultAdmin() {
+  if (!db) {
+    throw new Error("Database not initialized");
+  }
+
+  return new Promise((resolve, reject) => {
+    db.get("SELECT COUNT(*) as count FROM users", (err, row) => {
+      if (err) {
+        console.error("Error checking users:", err);
+        reject(err);
+        return;
+      }
+
+      if (row.count === 0) {
+        const defaultAdmin = {
+          username: "developer",
+          name: "developer",
+          password: "1234",
+          phone: "0240827610",
+          type: "admin"
+        };
+
+        db.run(
+          `INSERT INTO users (username, name, password, phone, type, created_at) 
+           VALUES (?, ?, ?, ?, ?, DATETIME('now'))`,
+          [
+            defaultAdmin.username,
+            defaultAdmin.name,
+            defaultAdmin.password,
+            defaultAdmin.phone,
+            defaultAdmin.type
+          ],
+          (err) => {
+            if (err) {
+              console.error("Error adding default admin:", err);
+              reject(err);
+              return;
+            }
+            console.log("Default admin user created successfully");
+            resolve();
+          }
+        );
+      } else {
+        console.log("Users already exist, skipping default admin creation");
+        resolve();
+      }
+    });
+  });
+}
+
+async function migrateDatabase() {
+  if (!db) {
+    throw new Error("Database not initialized");
+  }
+
+  return new Promise((resolve, reject) => {
+    // Use db.all() instead of db.get() to get all columns
+    db.all("PRAGMA table_info(pending_sales)", (err, rows) => {
+      if (err) {
+        console.error("Error checking table info:", err);
+        reject(err);
+        return;
+      }
+
+      // Now rows is an array and we can use .some()
+      const hasStatusColumn = rows.some(row => row.name === 'status');
+      
+      if (!hasStatusColumn) {
+        // Add the status column if it doesn't exist
+        db.run(`
+          ALTER TABLE pending_sales 
+          ADD COLUMN status TEXT DEFAULT 'pending'
+        `, (err) => {
+          if (err) {
+            console.error("Error adding status column:", err);
+            reject(err);
+            return;
+          }
+          console.log("Added status column to pending_sales table");
+          resolve();
+        });
+      } else {
+        console.log("Status column already exists");
+        resolve();
+      }
+    });
+  });
+}
+

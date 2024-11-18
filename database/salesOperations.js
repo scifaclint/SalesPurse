@@ -110,9 +110,9 @@ export const salesOperations = {
             discount_percentage,
             worker_id,
             notes,
-            created_at,
-            status
-          ) VALUES (?, ?, ?, ?, ?, ?, DATETIME('now'), 'pending')`,
+            status,
+            created_at
+          ) VALUES (?, ?, ?, ?, ?, ?, 'pending', DATETIME('now'))`,
           [customerName, customerPhone, totalAmount, discountPercentage, workerId, notes],
           function(err) {
             if (err) {
@@ -139,7 +139,7 @@ export const salesOperations = {
               stmt.finalize();
               db.run("COMMIT", (err) => {
                 if (err) reject(err);
-                else resolve(pendingSaleId);
+                else resolve({ success: true, id: pendingSaleId });
               });
             } catch (error) {
               db.run("ROLLBACK");

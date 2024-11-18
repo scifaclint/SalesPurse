@@ -190,31 +190,30 @@ const NewSaleContent = () => {
 
   // Add this validation function
   const validateSaleBeforeCompletion = () => {
-    // Check if customer details are provided
+    if (!currentUser || !currentUser.id) {
+      return "User session not found. Please log in again.";
+    }
+
     if (!formData.customerName.trim()) {
       return "Customer name is required";
     }
+
     if (!formData.customerPhone.trim()) {
       return "Customer phone number is required";
     }
 
     // Validate products
     for (const product of formData.products) {
-      if (!product.name) {
+      if (!product.id || !product.name) {
         return "Please select all products from the dropdown";
       }
 
-      const inventoryProduct = products.find(p => p.name === product.name);
-      if (!inventoryProduct) {
-        return `Product "${product.name}" is not available in inventory`;
+      if (!product.quantity || product.quantity <= 0) {
+        return `Please enter a valid quantity for ${product.name}`;
       }
 
-      if (product.quantity > inventoryProduct.quantity) {
-        return `Not enough stock for "${product.name}". Available: ${inventoryProduct.quantity}`;
-      }
-
-      if (product.quantity <= 0) {
-        return `Invalid quantity for "${product.name}"`;
+      if (product.quantity > product.maxQuantity) {
+        return `Not enough stock for "${product.name}". Available: ${product.maxQuantity}`;
       }
     }
 
@@ -247,6 +246,11 @@ const NewSaleContent = () => {
 
   // Handle save to pending
   const handleSavePending = async () => {
+    if (!currentUser || !currentUser.id) {
+      setValidationError("User session not found. Please log in again.");
+      return;
+    }
+
     const error = validateSaleBeforeCompletion();
     if (error) {
       setValidationError(error);
@@ -255,6 +259,8 @@ const NewSaleContent = () => {
 
     try {
       setLoading(true);
+      
+      // Format the sale data
       const saleData = {
         customerName: formData.customerName,
         customerPhone: formData.customerPhone,
@@ -269,6 +275,8 @@ const NewSaleContent = () => {
         }))
       };
 
+      console.log('Pending Sale Data:', saleData); // For debugging
+
       const result = await addPendingSale(saleData);
       
       if (result.success) {
@@ -276,13 +284,14 @@ const NewSaleContent = () => {
         // Reset form after 2 seconds
         setTimeout(() => {
           setSuccessMessage("");
-          clearFields();
+          resetForm();
         }, 2000);
       } else {
-        setValidationError(result.message);
+        setValidationError(result.message || "Failed to add sale to pending");
       }
     } catch (error) {
-      setValidationError(error.message);
+      console.error('Error saving pending sale:', error);
+      setValidationError(error.message || "An error occurred while saving the sale");
     } finally {
       setLoading(false);
     }

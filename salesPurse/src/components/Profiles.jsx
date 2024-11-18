@@ -91,6 +91,12 @@ const UserAccountManagement = () => {
     });
     
     try {
+      const userToDelete = users.find(user => user.id === id);
+      if (userToDelete?.username === "developer") {
+        alert("The default developer account cannot be deleted.");
+        return;
+      }
+
       await deleteUser(id);
       setSelectedUser(null);
     } catch (err) {
@@ -100,6 +106,11 @@ const UserAccountManagement = () => {
   };
 
   const handleDeleteClick = (id) => {
+    if (selectedUser.username === "developer") {
+      alert("The default developer account cannot be deleted.");
+      return;
+    }
+    
     setDeleteConfirmation({
       isOpen: true,
       userId: id
@@ -278,8 +289,18 @@ const UserAccountManagement = () => {
                         Update User
                       </button>
                       <button
-                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                        className={`px-4 py-2 rounded transition-colors ${
+                          selectedUser.username === "developer"
+                            ? "bg-gray-400 cursor-not-allowed"
+                            : "bg-red-600 hover:bg-red-700 text-white"
+                        }`}
                         onClick={() => handleDeleteClick(selectedUser.id)}
+                        disabled={selectedUser.username === "developer"}
+                        title={
+                          selectedUser.username === "developer"
+                            ? "Default developer account cannot be deleted"
+                            : "Delete user"
+                        }
                       >
                         Delete User
                       </button>
